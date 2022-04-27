@@ -3,6 +3,7 @@
 FlightSurety is a sample application project for Udacity's Blockchain course.
 
 FlightSurety is flight delay insurance for passengers:
+
 - managed as collabartion between multiple airlines
 - passengers purchase insurance prior to flight
 - if flight is delayed due to airline fault, passengers are paid 1.5X the amount they paid for insurance
@@ -48,23 +49,33 @@ This repository contains Smart Contract code in Solidity (using Truffle), tests 
 To install, download or clone the repo, then:
 
 `npm install`
-`truffle compile`
+
+`ganache-cli -a 50`
+`truffle console --network ganache_cli`
+`compile`
+`migrate`
 
 ## Clean
 
 `npm install --save-dev prettier prettier-plugin-solidity`
 `npx prettier --write 'contracts/**/*.sol'`
 
-## Develop Client
+## Ganache-cli Client
+
+To start Ganache with 50 accounts
+
+`ganache-cli -a 50`
 
 To run truffle tests:
 
-`truffle test ./test/flightSurety.js`
-`truffle test ./test/oracles.js`
+`truffle console --network ganache_cli`
+`test`
 
 To use the dapp:
 
-`truffle migrate`
+`truffle console --network ganache_cli`
+`compile`
+`migrate`
 `npm run dapp`
 
 To view dapp:
@@ -83,14 +94,29 @@ To build dapp for prod:
 
 Deploy the contents of the ./dapp folder
 
+## Troubleshootings
+
+If you have issue with webpack:
+
+```bash
+Line 84:
+require('webpack-cli/bin/config-yargs')(yargs);
+To:
+require('webpack-cli/bin/config/config-yargs')(yargs);
+
+Line 92:
+const config = require('webpack-cli/bin/convert-argv')(yargs, argv, {
+To:
+const config = require('webpack-cli/bin/utils/convert-argv')(yargs, argv, {
+```
 
 ## Resources
 
-* [How does Ethereum work anyway?](https://medium.com/@preethikasireddy/how-does-ethereum-work-anyway-22d1df506369)
-* [BIP39 Mnemonic Generator](https://iancoleman.io/bip39/)
-* [Truffle Framework](http://truffleframework.com/)
-* [Ganache Local Blockchain](http://truffleframework.com/ganache/)
-* [Remix Solidity IDE](https://remix.ethereum.org/)
-* [Solidity Language Reference](http://solidity.readthedocs.io/en/v0.4.24/)
-* [Ethereum Blockchain Explorer](https://etherscan.io/)
-* [Web3Js Reference](https://github.com/ethereum/wiki/wiki/JavaScript-API)
+- [How does Ethereum work anyway?](https://medium.com/@preethikasireddy/how-does-ethereum-work-anyway-22d1df506369)
+- [BIP39 Mnemonic Generator](https://iancoleman.io/bip39/)
+- [Truffle Framework](http://truffleframework.com/)
+- [Ganache Local Blockchain](http://truffleframework.com/ganache/)
+- [Remix Solidity IDE](https://remix.ethereum.org/)
+- [Solidity Language Reference](http://solidity.readthedocs.io/en/v0.4.24/)
+- [Ethereum Blockchain Explorer](https://etherscan.io/)
+- [Web3Js Reference](https://github.com/ethereum/wiki/wiki/JavaScript-API)
