@@ -17,6 +17,10 @@ FlightSurety is flight delay insurance for passengers:
 - FlightSuretyApp: app logic and oracle code
 - Dapp client: to trigger contract calls
 
+#### Operational status control
+
+The operation status control is a boolean variable that can be used to enable or disable the contract. It is used in a modifier.
+
 #### Airlines
 
 - 1st airline is registered when contract is deployed
@@ -50,7 +54,7 @@ To install, download or clone the repo, then:
 
 `npm install`
 
-`ganache-cli -a 50`
+`ganache-cli -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" -a 25`
 `truffle console --network ganache_cli`
 `compile`
 `migrate`
@@ -64,7 +68,7 @@ To install, download or clone the repo, then:
 
 To start Ganache with 50 accounts
 
-`ganache-cli -a 50`
+`ganache-cli -a 25 -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"`
 
 To run truffle tests:
 
