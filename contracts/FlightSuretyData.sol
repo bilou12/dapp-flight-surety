@@ -99,9 +99,8 @@ contract FlightSuretyData {
     function _registerAirline(address _address, bool _isOperational)
         external
         requireIsOperational
-        requireIsAuthorizedCaller
     {
-        Airline airline;
+        Airline memory airline;
         airline.isRegistered = true;
         airline.isOperational = _isOperational;
 
@@ -150,11 +149,11 @@ contract FlightSuretyData {
 
     function authorizeCaller(address _address) external requireContractOwner {
         authorizedCallers[_address] = true;
-        AuthorizeCaller(_address);
+        emit AuthorizeCaller(_address);
     }
 
     function unauthorizeCaller(address _address) external requireContractOwner {
         authorizedCallers[_address] = false;
-        UnauthorizeCaller(_address);
+        emit UnauthorizeCaller(_address);
     }
 }

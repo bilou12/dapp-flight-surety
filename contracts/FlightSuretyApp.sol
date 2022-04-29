@@ -39,6 +39,12 @@ contract FlightSuretyApp {
     bool private operational = true;
 
     /********************************************************************************************/
+    /*                                       EVENT DEFINITIONS                                  */
+    /********************************************************************************************/
+
+    event RegisterAirline(address account);
+
+    /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
 
@@ -51,7 +57,6 @@ contract FlightSuretyApp {
      *      the event there is an issue that needs to be fixed
      */
     modifier requireIsOperational() {
-        // Modify to call data contract's status
         require(operational, "Contract is currently not operational");
         _; // All modifiers require an "_" which indicates where the function body will be added
     }
@@ -76,6 +81,8 @@ contract FlightSuretyApp {
         contractOwner = msg.sender;
         flightSuretyData = FlightSuretyData(dataContract);
         flightSuretyData._registerAirline(msg.sender, true);
+
+        emit RegisterAirline(contractOwner);
     }
 
     /********************************************************************************************/
