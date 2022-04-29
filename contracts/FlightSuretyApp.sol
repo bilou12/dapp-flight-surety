@@ -12,6 +12,8 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract FlightSuretyApp {
     using SafeMath for uint256; // Allow SafeMath functions to be called for all uint256 types (similar to "prototype" in Javascript)
 
+    FlightSuretyData flightSuretyData; // Instance of FlightSuretyData
+
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
@@ -34,6 +36,14 @@ contract FlightSuretyApp {
     }
     mapping(bytes32 => Flight) private flights;
 
+    bool private operational = true;
+
+    /********************************************************************************************/
+    /*                                       EVENT DEFINITIONS                                  */
+    /********************************************************************************************/
+
+    event RegisterAirline(address account);
+
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -47,8 +57,7 @@ contract FlightSuretyApp {
      *      the event there is an issue that needs to be fixed
      */
     modifier requireIsOperational() {
-        // Modify to call data contract's status
-        require(true, "Contract is currently not operational");
+        require(operational, "Contract is currently not operational");
         _; // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -68,16 +77,32 @@ contract FlightSuretyApp {
      * @dev Contract constructor
      *
      */
-    constructor() public {
+    constructor(address dataContract) public {
         contractOwner = msg.sender;
+        flightSuretyData = FlightSuretyData(dataContract);
+        flightSuretyData._registerAirline(msg.sender, true);
+
+        emit RegisterAirline(contractOwner);
     }
 
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
 
-    function isOperational() public pure returns (bool) {
-        return true; // Modify to call data contract's status
+    function isOperational() public view returns (bool) {
+        return operational;
+    }
+
+    function setIsOperational(bool _operational) public requireContractOwner {
+        operational = _operational;
+    }
+
+    function setTestingMode(bool _operational)
+        public
+        requireIsOperational
+        returns (bool)
+    {
+        return _operational;
     }
 
     /********************************************************************************************/
@@ -297,4 +322,8 @@ contract FlightSuretyApp {
     }
 
     // endregion
+}
+
+interface FlightSuretyData {
+    function _registerAirline(address account, bool isOperational) external;
 }
