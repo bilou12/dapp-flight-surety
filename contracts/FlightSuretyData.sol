@@ -9,12 +9,23 @@ contract FlightSuretyData {
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
+    struct Airline {
+        bool isRegistered;
+        bool isOperational;
+    }
+
     address private contractOwner; // Account used to deploy contract
     bool private operational = true; // Blocks all state changes throughout the contract if false
+
+    mapping(address => bool) private authorizedCallers;
+    mapping(address => Airline) airlines;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
+
+    event AuthorizeCaller(address indexed _address);
+    event UnauthorizeCaller(address indexed _address);
 
     /**
      * @dev Constructor
@@ -49,6 +60,11 @@ contract FlightSuretyData {
         _;
     }
 
+    modifier requireIsAuthorizedCaller() {
+        require(authorizedCallers[msg.sender], "Caller is not authorized");
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -80,7 +96,17 @@ contract FlightSuretyData {
      *      Can only be called from FlightSuretyApp contract
      *
      */
-    function registerAirline() external pure {}
+    function _registerAirline(address _address, bool _isOperational)
+        external
+        requireIsOperational
+        requireIsAuthorizedCaller
+    {
+        Airline airline;
+        airline.isRegistered = true;
+        airline.isOperational = _isOperational;
+
+        airlines[_address] = airline;
+    }
 
     /**
      * @dev Buy insurance for a flight
@@ -120,5 +146,15 @@ contract FlightSuretyData {
      */
     function() external payable {
         fund();
+    }
+
+    function authorizeCaller(address _address) external requireContractOwner {
+        authorizedCallers[_address] = true;
+        AuthorizeCaller(_address);
+    }
+
+    function unauthorizeCaller(address _address) external requireContractOwner {
+        authorizedCallers[_address] = false;
+        UnauthorizeCaller(_address);
     }
 }
