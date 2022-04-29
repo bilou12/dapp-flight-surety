@@ -19,6 +19,7 @@ contract FlightSuretyData {
 
     mapping(address => bool) private authorizedCallers;
     mapping(address => Airline) airlines;
+    uint256 countAirlines = 0;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -96,15 +97,33 @@ contract FlightSuretyData {
      *      Can only be called from FlightSuretyApp contract
      *
      */
-    function _registerAirline(address _address, bool _isOperational)
-        external
-        requireIsOperational
-    {
+    // TODO - review how to remove the _from, that seems ugly
+    function _registerAirline(
+        address _from,
+        address _address,
+        bool _isOperational
+    ) external requireIsOperational {
+        if (countAirlines > 0 && countAirlines < 4) {
+            require(
+                airlines[_from].isOperational,
+                "Only operational airlines can register a new airline."
+            );
+        }
+
         Airline memory airline;
         airline.isRegistered = true;
         airline.isOperational = _isOperational;
 
         airlines[_address] = airline;
+        countAirlines += 1;
+    }
+
+    function isAirlineRegistered(address _address) public view returns (bool) {
+        return airlines[_address].isRegistered;
+    }
+
+    function isAirlineOperational(address _address) public view returns (bool) {
+        return airlines[_address].isOperational;
     }
 
     /**
@@ -147,11 +166,19 @@ contract FlightSuretyData {
         fund();
     }
 
+    /**
+     * @dev Add an address to the authorizeCallers map which is used in the modifier requireIsAuthorizedCaller
+     *
+     */
     function authorizeCaller(address _address) external requireContractOwner {
         authorizedCallers[_address] = true;
         emit AuthorizeCaller(_address);
     }
 
+    /**
+     * @dev Remove an address to the authorizeCallers map which is used in the modifier requireIsAuthorizedCaller
+     *
+     */
     function unauthorizeCaller(address _address) external requireContractOwner {
         authorizedCallers[_address] = false;
         emit UnauthorizeCaller(_address);

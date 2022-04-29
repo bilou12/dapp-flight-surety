@@ -42,7 +42,7 @@ contract FlightSuretyApp {
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
 
-    event RegisterAirline(address account);
+    event RegisterAirline(address _address);
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -80,7 +80,7 @@ contract FlightSuretyApp {
     constructor(address dataContract) public {
         contractOwner = msg.sender;
         flightSuretyData = FlightSuretyData(dataContract);
-        flightSuretyData._registerAirline(msg.sender, true);
+        flightSuretyData._registerAirline(msg.sender, msg.sender, true);
 
         emit RegisterAirline(contractOwner);
     }
@@ -113,11 +113,12 @@ contract FlightSuretyApp {
      * @dev Add an airline to the registration queue
      *
      */
-    function registerAirline()
+    function registerAirline(address _address)
         external
-        pure
         returns (bool success, uint256 votes)
     {
+        flightSuretyData._registerAirline(msg.sender, _address, false);
+        emit RegisterAirline(_address);
         return (success, 0);
     }
 
@@ -325,5 +326,9 @@ contract FlightSuretyApp {
 }
 
 interface FlightSuretyData {
-    function _registerAirline(address account, bool isOperational) external;
+    function _registerAirline(
+        address _from,
+        address _address,
+        bool _isOperational
+    ) external;
 }

@@ -66,7 +66,7 @@ To install, download or clone the repo, then:
 
 ## Ganache-cli Client
 
-To start Ganache with 50 accounts
+To start Ganache with N accounts
 
 `ganache-cli -a 25 -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"`
 

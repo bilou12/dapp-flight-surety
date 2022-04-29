@@ -66,10 +66,21 @@ contract('Flight Surety Tests', async (accounts) => {
 
     });
 
-    it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
-
+    it('(airline) cannot register an Airline using registerAirline() if it is not registered', async () => {
         // ARRANGE
         let newAirline = accounts[2];
+
+        // check caller is registered
+        let resCallerIsRegistered = await config.flightSuretyData.isAirlineRegistered.call(config.firstAirline, {
+            from: config.owner
+        })
+        assert.equal(resCallerIsRegistered, false, "Caller is not registered")
+
+        // check caller is not operational
+        let resCallerIsOperational = await config.flightSuretyData.isAirlineRegistered.call(config.firstAirline, {
+            from: config.owner
+        })
+        assert.equal(resCallerIsOperational, false, "Caller is not operational")
 
         // ACT
         try {
@@ -77,12 +88,83 @@ contract('Flight Surety Tests', async (accounts) => {
                 from: config.firstAirline
             });
         } catch (e) {
-
+            // console.log(e);
         }
-        let result = await config.flightSuretyData.isAirline.call(newAirline);
+        let result2 = await config.flightSuretyData.isAirlineRegistered.call(newAirline);
 
         // ASSERT
-        assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
+        assert.equal(result2, false, "Airline should not be able to register another airline if it isn't registered and then funded");
+
+    });
+
+    it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
+        // ARRANGE
+        let newAirlineCaller = accounts[3];
+        let newAirline = accounts[4];
+
+        try {
+            await config.flightSuretyApp.registerAirline(newAirlineCaller, {
+                from: config.owner
+            });
+        } catch (e) {
+            console.log(e);
+        }
+
+        // check caller is registered
+        let resCallerIsRegistered = await config.flightSuretyData.isAirlineRegistered.call(newAirlineCaller, {
+            from: config.owner
+        })
+        assert.equal(resCallerIsRegistered, true, "Caller is registered")
+
+        // check caller is not operational
+        let resCallerIsOperational = await config.flightSuretyData.isAirlineOperational.call(newAirlineCaller, {
+            from: config.owner
+        })
+        assert.equal(resCallerIsOperational, false, "Caller is not operational")
+
+        // ACT
+        try {
+            await config.flightSuretyApp.registerAirline(newAirline, {
+                from: newAirlineCaller
+            });
+        } catch (e) {
+            // console.log(e);
+        }
+        let result = await config.flightSuretyData.isAirlineRegistered.call(newAirline);
+
+        // ASSERT
+        assert.equal(result, false, "Airline should not be able to register another airline if it is registered but hasn't provided funding");
+
+    });
+
+    it('(airline) can register an Airline using registerAirline() if it is funded', async () => {
+        // ARRANGE
+        let newAirline = accounts[5];
+
+        // check caller is registered
+        let resCallerIsRegistered = await config.flightSuretyData.isAirlineRegistered.call(config.owner, {
+            from: config.owner
+        })
+        assert.equal(resCallerIsRegistered, true, "Caller is registered")
+
+        // check caller is not operational
+        let resCallerIsOperational = await config.flightSuretyData.isAirlineRegistered.call(config.owner, {
+            from: config.owner
+        })
+        assert.equal(resCallerIsOperational, true, "Caller is operational")
+
+        // ACT
+        try {
+            await config.flightSuretyApp.registerAirline(newAirline, {
+                from: config.owner
+            });
+        } catch (e) {
+            console.log(e);
+        }
+        let result = await config.flightSuretyData.isAirlineRegistered.call(newAirline);
+
+        // ASSERT
+        assert.equal(result, true, "Airline should be able to register another airline if it has provided funding");
 
     });
 });
