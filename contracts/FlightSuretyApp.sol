@@ -80,7 +80,7 @@ contract FlightSuretyApp {
     constructor(address dataContract) public {
         contractOwner = msg.sender;
         flightSuretyData = FlightSuretyData(dataContract);
-        flightSuretyData._registerAirline(msg.sender, msg.sender, true);
+        flightSuretyData._registerAirline(msg.sender);
 
         emit RegisterAirline(contractOwner);
     }
@@ -117,9 +117,24 @@ contract FlightSuretyApp {
         external
         returns (bool success, uint256 votes)
     {
-        flightSuretyData._registerAirline(msg.sender, _address, false);
+        flightSuretyData._registerAirline(_address);
         emit RegisterAirline(_address);
         return (success, 0);
+    }
+
+    function fund() public payable requireIsOperational {
+        // check
+        require(msg.value == 10 ether, "msg.value should be 10 ether");
+        require(
+            !flightSuretyData.isAirlineFunded(msg.sender),
+            "The airline is already funded"
+        );
+
+        // effect
+        flightSuretyData.setAirlineFunded(msg.sender);
+
+        // interact
+        flightSuretyData.fundAirline(msg.sender, msg.value);
     }
 
     /**
@@ -326,9 +341,11 @@ contract FlightSuretyApp {
 }
 
 interface FlightSuretyData {
-    function _registerAirline(
-        address _from,
-        address _address,
-        bool _isOperational
-    ) external;
+    function _registerAirline(address _address) external;
+
+    function isAirlineFunded(address _address) public view returns (bool);
+
+    function fundAirline(address _address, uint256 _amount) external;
+
+    function setAirlineFunded(address _address) external;
 }

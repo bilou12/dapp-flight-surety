@@ -7,6 +7,11 @@ contract('Flight Surety Tests', async (accounts) => {
     before('setup contract', async () => {
         config = await Test.Config(accounts);
         await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
+
+        await config.flightSuretyApp.fund({
+            from: config.owner,
+            value: 10e+18
+        })
     });
 
     /****************************************************************************************/
@@ -49,7 +54,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     });
 
-    it(`(multiparty) can block access to functions using requireIsOperational when operating status is false`, async function () {
+    it(`(multiparty) can block access to functions using requireIsFunded when operating status is false`, async function () {
 
         await config.flightSuretyData.setOperatingStatus(false);
 
@@ -59,7 +64,7 @@ contract('Flight Surety Tests', async (accounts) => {
         } catch (e) {
             reverted = true;
         }
-        assert.equal(reverted, true, "Access not blocked for requireIsOperational");
+        assert.equal(reverted, true, "Access not blocked for requireIsFunded");
 
         // Set it back for other tests to work
         await config.flightSuretyData.setOperatingStatus(true);
@@ -76,11 +81,11 @@ contract('Flight Surety Tests', async (accounts) => {
         })
         assert.equal(resCallerIsRegistered, false, "Caller is not registered")
 
-        // check caller is not operational
-        let resCallerIsOperational = await config.flightSuretyData.isAirlineRegistered.call(config.firstAirline, {
+        // check caller is not funded
+        let resCallerIsFunded = await config.flightSuretyData.isAirlineRegistered.call(config.firstAirline, {
             from: config.owner
         })
-        assert.equal(resCallerIsOperational, false, "Caller is not operational")
+        assert.equal(resCallerIsFunded, false, "Caller is not funded")
 
         // ACT
         try {
@@ -97,7 +102,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     });
 
-    it('(airline) cannot register an Airline using registerAirline() if it is not funded', async () => {
+    it('(airline) cannot register an Airline using registerAirline() if it is registered but not funded', async () => {
         // ARRANGE
         let newAirlineCaller = accounts[3];
         let newAirline = accounts[4];
@@ -111,16 +116,16 @@ contract('Flight Surety Tests', async (accounts) => {
         }
 
         // check caller is registered
-        let resCallerIsRegistered = await config.flightSuretyData.isAirlineRegistered.call(newAirlineCaller, {
+        resCallerIsRegistered = await config.flightSuretyData.isAirlineRegistered.call(newAirlineCaller, {
             from: config.owner
         })
         assert.equal(resCallerIsRegistered, true, "Caller is registered")
 
-        // check caller is not operational
-        let resCallerIsOperational = await config.flightSuretyData.isAirlineOperational.call(newAirlineCaller, {
+        // check caller is not funded
+        let resCallerIsFunded = await config.flightSuretyData.isAirlineFunded.call(newAirlineCaller, {
             from: config.owner
         })
-        assert.equal(resCallerIsOperational, false, "Caller is not operational")
+        assert.equal(resCallerIsFunded, false, "Caller is not funded")
 
         // ACT
         try {
@@ -137,7 +142,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     });
 
-    it('(airline) can register an Airline using registerAirline() if it is funded', async () => {
+    it('(airline) can register an Airline using registerAirline() if it is registered and funded', async () => {
         // ARRANGE
         let newAirline = accounts[5];
 
@@ -147,11 +152,11 @@ contract('Flight Surety Tests', async (accounts) => {
         })
         assert.equal(resCallerIsRegistered, true, "Caller is registered")
 
-        // check caller is not operational
-        let resCallerIsOperational = await config.flightSuretyData.isAirlineRegistered.call(config.owner, {
+        // check caller is funded
+        let resCallerIsFunded = await config.flightSuretyData.isAirlineRegistered.call(config.owner, {
             from: config.owner
         })
-        assert.equal(resCallerIsOperational, true, "Caller is operational")
+        assert.equal(resCallerIsFunded, true, "Caller is funded")
 
         // ACT
         try {
@@ -165,6 +170,5 @@ contract('Flight Surety Tests', async (accounts) => {
 
         // ASSERT
         assert.equal(result, true, "Airline should be able to register another airline if it has provided funding");
-
     });
 });

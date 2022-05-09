@@ -11,7 +11,7 @@ contract FlightSuretyData {
 
     struct Airline {
         bool isRegistered;
-        bool isOperational;
+        bool isFunded;
     }
 
     address private contractOwner; // Account used to deploy contract
@@ -20,6 +20,7 @@ contract FlightSuretyData {
     mapping(address => bool) private authorizedCallers;
     mapping(address => Airline) airlines;
     uint256 countAirlines = 0;
+    mapping(address => uint256) funds;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -98,21 +99,17 @@ contract FlightSuretyData {
      *
      */
     // TODO - review how to remove the _from, that seems ugly
-    function _registerAirline(
-        address _from,
-        address _address,
-        bool _isOperational
-    ) external requireIsOperational {
-        if (countAirlines > 0 && countAirlines < 4) {
+    function _registerAirline(address _address) external requireIsOperational {
+        if (countAirlines >= 1) {
             require(
-                airlines[_from].isOperational,
-                "Only operational airlines can register a new airline."
+                airlines[tx.origin].isFunded,
+                "Only registered and funded airlines can register a new airline."
             );
         }
 
         Airline memory airline;
         airline.isRegistered = true;
-        airline.isOperational = _isOperational;
+        airline.isFunded = false;
 
         airlines[_address] = airline;
         countAirlines += 1;
@@ -122,8 +119,18 @@ contract FlightSuretyData {
         return airlines[_address].isRegistered;
     }
 
-    function isAirlineOperational(address _address) public view returns (bool) {
-        return airlines[_address].isOperational;
+    function isAirlineFunded(address _address) public view returns (bool) {
+        return airlines[_address].isFunded;
+    }
+
+    function fundAirline(address _address, uint256 _amount) external {
+        uint256 fund = funds[_address];
+        fund = fund.add(_amount);
+        funds[_address] = fund;
+    }
+
+    function setAirlineFunded(address _address) external {
+        airlines[_address].isFunded = true;
     }
 
     /**
@@ -148,7 +155,9 @@ contract FlightSuretyData {
      *      resulting in insurance payouts, the contract should be self-sustaining
      *
      */
-    function fund() public payable {}
+    function fund() public payable {
+        airlines[tx.origin].isFunded = true;
+    }
 
     function getFlightKey(
         address airline,
