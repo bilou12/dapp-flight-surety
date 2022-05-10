@@ -11,22 +11,51 @@ FlightSurety is flight delay insurance for passengers:
 
 ## Introduction / Features
 
-#### Separation of concerns
+#### Separation of Concerns, Operational Control and “Fail Fast”
 
-- FlightSuretyData contract: data persistence
-- FlightSuretyApp: app logic and oracle code
-- Dapp client: to trigger contract calls
+- Separation of concerns:
 
-#### Operational status control
+  - FlightSuretyData contract: data persistence
+  - FlightSuretyApp: app logic and oracle code
+  - Dapp client: to trigger contract calls available at http://localhost:8000
 
-The operation status control is a boolean variable that can be used to enable or disable the contract. It is used in a modifier.
+  ```bash
+  npm run dapp
+  ```
+
+  - Oracle server application:
+
+  ```bash
+  npm run server
+  ```
+
+- Operational status control:
+
+  - The operation status control is a boolean variable that can be used to enable or disable the contract. It is used in a modifier.
+
+- "Fail fast":
+  - Contract functions “fail fast” by having a majority of “require()” calls at the beginning of function body
 
 #### Airlines
 
 - 1st airline is registered when contract is deployed
 - only existing airlines can register a new airline until there are at least 4 airlines registered
+  - tested in :
+  ```bash
+  '(airline) cannot register an Airline using registerAirline() if it is not registered'
+  '(airline) can register an Airline using registerAirline() if it is registered but not funded'
+  '(airline) can register an Airline using registerAirline() if it is registered and funded'
+  ```
 - registration of 5th and subsequent airlines requires multi-party consensus of 50% of registered airlines
+  - tested in :
+  ```bash
+  '(airline) can register an Airline using registerAirline() if it is registered and funded using multisig once there are more than 4 airlines'
+  ```
 - airline can be registered but does not participate in contract until it submits funding of 10 ether
+  - tested in :
+  ```bash
+  '(airline) can fund an Airline using fund() so that it can participate in the contract'
+  ```
 
 #### Passengers
 

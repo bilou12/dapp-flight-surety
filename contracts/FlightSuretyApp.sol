@@ -43,6 +43,7 @@ contract FlightSuretyApp {
     /********************************************************************************************/
 
     event RegisterAirline(address _address);
+    event FundAirline(address _address, uint256 _amount);
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -80,8 +81,7 @@ contract FlightSuretyApp {
     constructor(address dataContract) public {
         contractOwner = msg.sender;
         flightSuretyData = FlightSuretyData(dataContract);
-        flightSuretyData._registerAirline(msg.sender);
-
+        flightSuretyData._registerAirline(contractOwner);
         emit RegisterAirline(contractOwner);
     }
 
@@ -135,6 +135,8 @@ contract FlightSuretyApp {
 
         // interact
         flightSuretyData.fundAirline(msg.sender, msg.value);
+
+        emit FundAirline(msg.sender, msg.value);
     }
 
     /**

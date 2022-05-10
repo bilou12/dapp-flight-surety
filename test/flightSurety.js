@@ -75,17 +75,17 @@ contract('Flight Surety Tests', async (accounts) => {
         // ARRANGE
         let newAirline = accounts[2];
 
-        // check caller is registered
+        // check caller is not registered
         let resCallerIsRegistered = await config.flightSuretyData.isAirlineRegistered.call(config.firstAirline, {
             from: config.owner
         })
-        assert.equal(resCallerIsRegistered, false, "Caller is not registered")
+        assert.equal(resCallerIsRegistered, false, "Caller is registered")
 
         // check caller is not funded
-        let resCallerIsFunded = await config.flightSuretyData.isAirlineRegistered.call(config.firstAirline, {
+        let resCallerIsFunded = await config.flightSuretyData.isAirlineFunded.call(config.firstAirline, {
             from: config.owner
         })
-        assert.equal(resCallerIsFunded, false, "Caller is not funded")
+        assert.equal(resCallerIsFunded, false, "Caller is funded")
 
         // ACT
         try {
@@ -102,7 +102,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
     });
 
-    it('(airline) cannot register an Airline using registerAirline() if it is registered but not funded', async () => {
+    it('(airline) can register an Airline using registerAirline() if it is registered but not funded', async () => {
         // ARRANGE
         let newAirlineCaller = accounts[3];
         let newAirline = accounts[4];
@@ -119,13 +119,13 @@ contract('Flight Surety Tests', async (accounts) => {
         resCallerIsRegistered = await config.flightSuretyData.isAirlineRegistered.call(newAirlineCaller, {
             from: config.owner
         })
-        assert.equal(resCallerIsRegistered, true, "Caller is registered")
+        assert.equal(resCallerIsRegistered, true, "Caller is not registered")
 
         // check caller is not funded
         let resCallerIsFunded = await config.flightSuretyData.isAirlineFunded.call(newAirlineCaller, {
             from: config.owner
         })
-        assert.equal(resCallerIsFunded, false, "Caller is not funded")
+        assert.equal(resCallerIsFunded, false, "Caller is funded")
 
         // ACT
         try {
@@ -133,13 +133,12 @@ contract('Flight Surety Tests', async (accounts) => {
                 from: newAirlineCaller
             });
         } catch (e) {
-            // console.log(e);
+            console.log(e);
         }
         let result = await config.flightSuretyData.isAirlineRegistered.call(newAirline);
 
         // ASSERT
-        assert.equal(result, false, "Airline should not be able to register another airline if it is registered but hasn't provided funding");
-
+        assert.equal(result, true, "Airline should be able to register another airline if it is registered but hasn't provided funding");
     });
 
     it('(airline) can register an Airline using registerAirline() if it is registered and funded', async () => {
@@ -150,13 +149,13 @@ contract('Flight Surety Tests', async (accounts) => {
         let resCallerIsRegistered = await config.flightSuretyData.isAirlineRegistered.call(config.owner, {
             from: config.owner
         })
-        assert.equal(resCallerIsRegistered, true, "Caller is registered")
+        assert.equal(resCallerIsRegistered, true, "Caller is not registered")
 
         // check caller is funded
-        let resCallerIsFunded = await config.flightSuretyData.isAirlineRegistered.call(config.owner, {
+        let resCallerIsFunded = await config.flightSuretyData.isAirlineFunded.call(config.owner, {
             from: config.owner
         })
-        assert.equal(resCallerIsFunded, true, "Caller is funded")
+        assert.equal(resCallerIsFunded, true, "Caller is not funded")
 
         // ACT
         try {
@@ -170,5 +169,109 @@ contract('Flight Surety Tests', async (accounts) => {
 
         // ASSERT
         assert.equal(result, true, "Airline should be able to register another airline if it has provided funding");
+    });
+
+    it('(airline) can register an Airline using registerAirline() if it is registered and funded using multisig once there are more than 4 airlines', async () => {
+        // CHECK
+        // check caller is registered
+        let resCallerIsRegistered = await config.flightSuretyData.isAirlineRegistered.call(config.owner, {
+            from: config.owner
+        })
+        assert.equal(resCallerIsRegistered, true, "Caller is not registered")
+
+        // check caller is funded
+        let resCallerIsFunded = await config.flightSuretyData.isAirlineFunded.call(config.owner, {
+            from: config.owner
+        })
+        assert.equal(resCallerIsFunded, true, "Caller is not funded")
+
+        // ARRANGE
+        // register and fund airline6
+        async function registerAndFundNewAirline(newAirline, from, doRegister, testRegister, doFund, testFund) {
+            if (doRegister) {
+                await config.flightSuretyApp.registerAirline(newAirline, {
+                    from: from
+                });
+            }
+
+            if (testRegister) {
+                let result = await config.flightSuretyData.isAirlineRegistered.call(newAirline);
+                assert.equal(result, true, "newAirline is not registered");
+            }
+
+            if (doFund) {
+                await config.flightSuretyApp.fund({
+                    from: newAirline,
+                    value: 10e+18
+                });
+            }
+
+            if (testFund) {
+                let fund = await config.flightSuretyData.getAirlineFunds.call(newAirline);
+                assert.equal(fund, 10e+18, "Funds do not match");
+            }
+        }
+
+        let counter = await config.flightSuretyData.getCountAirlines.call();
+        console.log("counter 1: ", counter.toNumber());
+        let counterMultiSig = await config.flightSuretyData.countMultiSig.call();
+        console.log("counterMultiSig 1: ", counterMultiSig.toNumber());
+
+        let newAirline3 = accounts[3];
+
+        counter = await config.flightSuretyData.getCountAirlines.call();
+        console.log("counter 2: ", counter.toNumber());
+
+        counterMultiSig = await config.flightSuretyData.countMultiSig.call();
+        console.log("counterMultiSig 2: ", counterMultiSig.toNumber());
+
+        // ACT
+        let newAirline6 = accounts[6];
+        await registerAndFundNewAirline(newAirline6, config.owner, true, false, false, false);
+        counter = await config.flightSuretyData.getCountAirlines.call();
+        console.log("counter 3: ", counter.toNumber());
+        counterMultiSig = await config.flightSuretyData.countMultiSig.call();
+        console.log("counterMultiSig 3: ", counterMultiSig.toNumber());
+
+        await registerAndFundNewAirline(newAirline6, newAirline3, true, false, false, false);
+        counter = await config.flightSuretyData.getCountAirlines.call();
+        console.log("counter 4: ", counter.toNumber());
+        counterMultiSig = await config.flightSuretyData.countMultiSig.call();
+        console.log("counterMultiSig 4: ", counterMultiSig.toNumber());
+    })
+
+    it('(airline) can fund an Airline using fund() so that it can participate in the contract', async () => {
+        // ARRANGE
+        let newAirline = accounts[3];
+
+        // check newAirline is registered
+        let isRegistered = await config.flightSuretyData.isAirlineRegistered.call(newAirline, {
+            from: config.owner
+        })
+        assert.equal(isRegistered, true, "newAirline is not registered")
+
+        // check newAirline is not funded
+        let isFunded = await config.flightSuretyData.isAirlineFunded.call(newAirline, {
+            from: config.owner
+        })
+        assert.equal(isFunded, false, "newAirline is funded")
+
+        // ACT
+        await config.flightSuretyApp.fund({
+            from: newAirline,
+            value: 10e+18
+        });
+
+        // ASSERT
+        // assert newAirline is now funded
+        isFunded = await config.flightSuretyData.isAirlineFunded.call(newAirline, {
+            from: config.owner
+        })
+        assert.equal(isFunded, true, "Caller is not funded")
+
+        let funds = await config.flightSuretyData.getAirlineFunds.call(newAirline, {
+            from: config.owner
+        })
+        assert.equal(funds, 10e+18, "Funds do not match");
     });
 });

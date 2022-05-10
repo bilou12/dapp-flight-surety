@@ -3,6 +3,7 @@ pragma solidity ^0.4.25;
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract FlightSuretyData {
+    using SafeMath for uint8;
     using SafeMath for uint256;
 
     /********************************************************************************************/
@@ -21,6 +22,9 @@ contract FlightSuretyData {
     mapping(address => Airline) airlines;
     uint256 countAirlines = 0;
     mapping(address => uint256) funds;
+
+    uint8 multiSigThreshold = 4;
+    address[] multiSigRegistration = new address[](0);
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -100,11 +104,29 @@ contract FlightSuretyData {
      */
     // TODO - review how to remove the _from, that seems ugly
     function _registerAirline(address _address) external requireIsOperational {
+        require(
+            !airlines[_address].isRegistered,
+            "Airline is already registered"
+        );
+
+        // in all cases besides when called from the constructor
         if (countAirlines >= 1) {
             require(
-                airlines[tx.origin].isFunded,
-                "Only registered and funded airlines can register a new airline."
+                airlines[tx.origin].isRegistered,
+                "Only registered airlines can register a new airline."
             );
+        }
+
+        // starting from 'multiSigThreshold' airlines, any new registration should be multisigned
+        if (countAirlines >= multiSigThreshold) {
+            addMultiSig(tx.origin, _address);
+            bool isMultiSig = getStatusMultiSig();
+            if (!isMultiSig) {
+                return;
+            }
+
+            // reset the multiSigRegistration list if isMultiSig = true
+            multiSigRegistration = new address[](0);
         }
 
         Airline memory airline;
@@ -113,6 +135,36 @@ contract FlightSuretyData {
 
         airlines[_address] = airline;
         countAirlines += 1;
+    }
+
+    function addMultiSig(address _from, address _address) private {
+        bool isDuplicate = false;
+        for (uint256 c = 0; c < multiSigRegistration.length; c++) {
+            if (multiSigRegistration[c] == _from) {
+                isDuplicate = true;
+                break;
+            }
+        }
+
+        require(!isDuplicate, "Caller has already called this function");
+
+        multiSigRegistration.push(_from);
+    }
+
+    function getStatusMultiSig() private view returns (bool) {
+        uint256 threshold = countAirlines.div(2);
+        if (multiSigRegistration.length >= threshold) {
+            return true;
+        }
+        return false;
+    }
+
+    function countMultiSig() public view returns (uint256) {
+        return multiSigRegistration.length;
+    }
+
+    function getCountAirlines() public view returns (uint256) {
+        return countAirlines;
     }
 
     function isAirlineRegistered(address _address) public view returns (bool) {
@@ -131,6 +183,10 @@ contract FlightSuretyData {
 
     function setAirlineFunded(address _address) external {
         airlines[_address].isFunded = true;
+    }
+
+    function getAirlineFunds(address _address) public view returns (uint256) {
+        return funds[_address];
     }
 
     /**
