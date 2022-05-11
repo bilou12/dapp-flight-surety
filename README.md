@@ -4,7 +4,7 @@ FlightSurety is a sample application project for Udacity's Blockchain course.
 
 FlightSurety is flight delay insurance for passengers:
 
-- managed as collabartion between multiple airlines
+- managed as collaboration between multiple airlines
 - passengers purchase insurance prior to flight
 - if flight is delayed due to airline fault, passengers are paid 1.5X the amount they paid for insurance
 - oracles provide flight status information

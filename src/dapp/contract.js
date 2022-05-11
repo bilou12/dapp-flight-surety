@@ -1,6 +1,6 @@
+import Web3 from 'web3';
 import FlightSuretyApp from '../../build/contracts/FlightSuretyApp.json';
 import Config from './config.json';
-import Web3 from 'web3';
 
 export default class Contract {
     constructor(network, callback) {
@@ -12,6 +12,7 @@ export default class Contract {
         this.owner = null;
         this.airlines = [];
         this.passengers = [];
+        this.NB_AIRLINES = 3;
     }
 
     initialize(callback) {
@@ -21,7 +22,7 @@ export default class Contract {
 
             let counter = 1;
 
-            while (this.airlines.length < 5) {
+            while (this.airlines.length < this.NB_AIRLINES) {
                 this.airlines.push(accts[counter++]);
             }
 
@@ -49,6 +50,7 @@ export default class Contract {
             flight: flight,
             timestamp: Math.floor(Date.now() / 1000)
         }
+        console.log('payload: ', payload);
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({
@@ -56,5 +58,20 @@ export default class Contract {
             }, (error, result) => {
                 callback(error, payload);
             });
+    }
+
+    registerAirlines(callback) {
+        let self = this;
+
+        for (const airline of this.airlines) {
+            console.log('registerAirlines: ' + airline);
+            self.flightSuretyApp.methods
+                .registerAirline(airline)
+                .send({
+                    from: self.owner
+                }, (err, res) => {
+                    callback(err, res)
+                })
+        }
     }
 }

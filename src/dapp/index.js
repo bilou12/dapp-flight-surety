@@ -1,5 +1,5 @@
-import DOM from './dom';
 import Contract from './contract';
+import DOM from './dom';
 import './flightsurety.css';
 
 
@@ -19,6 +19,39 @@ import './flightsurety.css';
             }]);
         });
 
+        // Register airlines
+        DOM.elid('register-airlines').addEventListener('click', () => {
+            contract.registerAirlines((err, res) => {
+                display('Airlines', 'Register airlines', [{
+                    label: 'Register airline',
+                    error: err,
+                    value: res
+                }])
+
+
+                // Fetch available flights from REST API and display in dropdown
+                let dropdown = document.getElementById('flight-number');
+                dropdown.length = 0;
+
+                const url = 'http://localhost:3000/flights';
+                fetch(url)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(data)
+                        let option;
+                        data = data.result
+                        for (let i = 0; i < data.length; i++) {
+                            option = document.createElement('option');
+                            option.text = data[i].name;
+                            option.value = data[i].name;
+                            dropdown.add(option);
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error('Fetch Error -', err);
+                    });
+            })
+        })
 
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
