@@ -213,31 +213,25 @@ contract('Flight Surety Tests', async (accounts) => {
         }
 
         let counter = await config.flightSuretyData.getCountAirlines.call();
-        console.log("counter 1: ", counter.toNumber());
+        console.log("getCountAirlines 1: ", counter.toNumber());
         let counterMultiSig = await config.flightSuretyData.countMultiSig.call();
-        console.log("counterMultiSig 1: ", counterMultiSig.toNumber());
+        console.log("countMultiSig 1: ", counterMultiSig.toNumber());
 
         let newAirline3 = accounts[3];
-
-        counter = await config.flightSuretyData.getCountAirlines.call();
-        console.log("counter 2: ", counter.toNumber());
-
-        counterMultiSig = await config.flightSuretyData.countMultiSig.call();
-        console.log("counterMultiSig 2: ", counterMultiSig.toNumber());
 
         // ACT
         let newAirline6 = accounts[6];
         await registerAndFundNewAirline(newAirline6, config.owner, true, false, false, false);
         counter = await config.flightSuretyData.getCountAirlines.call();
-        console.log("counter 3: ", counter.toNumber());
+        console.log("getCountAirlines 2: ", counter.toNumber());
         counterMultiSig = await config.flightSuretyData.countMultiSig.call();
-        console.log("counterMultiSig 3: ", counterMultiSig.toNumber());
+        console.log("countMultiSig 2: ", counterMultiSig.toNumber());
 
-        await registerAndFundNewAirline(newAirline6, newAirline3, true, false, false, false);
+        await registerAndFundNewAirline(newAirline6, newAirline3, true, true, false, false);
         counter = await config.flightSuretyData.getCountAirlines.call();
-        console.log("counter 4: ", counter.toNumber());
+        console.log("getCountAirlines 3: ", counter.toNumber());
         counterMultiSig = await config.flightSuretyData.countMultiSig.call();
-        console.log("counterMultiSig 4: ", counterMultiSig.toNumber());
+        console.log("countMultiSig 3: ", counterMultiSig.toNumber());
     })
 
     it('(airline) can fund an Airline using fund() so that it can participate in the contract', async () => {

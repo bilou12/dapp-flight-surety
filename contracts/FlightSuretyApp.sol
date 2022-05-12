@@ -115,11 +115,16 @@ contract FlightSuretyApp {
      */
     function registerAirline(address _address)
         external
-        returns (bool success, uint256 votes)
+        returns (bool, uint256)
     {
-        flightSuretyData._registerAirline(_address);
-        emit RegisterAirline(_address);
-        return (success, 0);
+        (bool success, uint256 votes) = flightSuretyData._registerAirline(
+            _address
+        );
+
+        if (success) {
+            emit RegisterAirline(_address);
+        }
+        return (success, votes);
     }
 
     function fund() public payable requireIsOperational {
@@ -343,7 +348,9 @@ contract FlightSuretyApp {
 }
 
 interface FlightSuretyData {
-    function _registerAirline(address _address) external;
+    function _registerAirline(address _address)
+        external
+        returns (bool, uint256);
 
     function isAirlineFunded(address _address) public view returns (bool);
 

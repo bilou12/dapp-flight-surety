@@ -11,7 +11,6 @@ import './flightsurety.css';
 
         // Read transaction
         contract.isOperational((error, result) => {
-            console.log(error, result);
             display('Operational Status', 'Check if contract is operational', [{
                 label: 'Operational Status',
                 error: error,
@@ -53,6 +52,77 @@ import './flightsurety.css';
             })
         })
 
+        DOM.elid('get-count-airlines').addEventListener('click', () => {
+            contract.getCountAirlines((err, res) => {
+                display('Airlines', 'Register airlines', [{
+                    label: 'Count airline',
+                    error: err,
+                    value: res
+                }])
+            })
+        })
+
+        DOM.elid('get-count-multisig').addEventListener('click', () => {
+            contract.getCountMultisig((err, res) => {
+                display('Airlines', 'Register airlines', [{
+                    label: 'Count multisig',
+                    error: err,
+                    value: res
+                }])
+            })
+        })
+
+
+        DOM.elid('is-registered-airline').addEventListener('click', () => {
+            let airline = '';
+            contract.isRegisteredAirline(airline, (err, res) => {
+                display('Airlines', 'Is registered airline', [{
+                    label: 'Is registered airline',
+                    error: err,
+                    value: res
+                }])
+            })
+        })
+
+        // Register airlines multisig
+        DOM.elid('register-airlines-mutisig').addEventListener('click', () => {
+            contract.registerAirlinesMultisig((err, res) => {
+                if (err) {
+                    console.log('err:' + err);
+                }
+                display('Airlines', 'Register airlines multisig', [{
+                    label: 'Register airline multisig',
+                    error: err,
+                    value: res
+                }])
+
+                console.log('checkpoint');
+
+                // Fetch available flights from REST API and display in dropdown
+                let dropdown = document.getElementById('flight-number');
+                dropdown.length = 0;
+
+                const url = 'http://localhost:3000/flights';
+                fetch(url)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        let option;
+                        data = data.result
+                        console.log('data: ' + JSON.stringify(data))
+                        for (let i = 0; i < data.length; i++) {
+                            option = document.createElement('option');
+                            option.text = data[i].name;
+                            option.value = data[i].name;
+                            dropdown.add(option);
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error('Fetch Error -', err);
+                    });
+            })
+        })
+
+
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
             let flight = DOM.elid('flight-number').value;
@@ -87,5 +157,4 @@ function display(title, description, results) {
         section.appendChild(row);
     })
     displayDiv.append(section);
-
 }

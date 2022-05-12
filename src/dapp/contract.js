@@ -1,6 +1,8 @@
 import Web3 from 'web3';
 import FlightSuretyApp from '../../build/contracts/FlightSuretyApp.json';
+import FlightSuretyData from '../../build/contracts/FlightSuretyData.json';
 import Config from './config.json';
+
 
 export default class Contract {
     constructor(network, callback) {
@@ -8,11 +10,13 @@ export default class Contract {
         let config = Config[network];
         this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
+        this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
+
         this.initialize(callback);
         this.owner = null;
         this.airlines = [];
         this.passengers = [];
-        this.NB_AIRLINES = 3;
+        this.NB_AIRLINES = 4;
     }
 
     initialize(callback) {
@@ -29,6 +33,8 @@ export default class Contract {
             while (this.passengers.length < 5) {
                 this.passengers.push(accts[counter++]);
             }
+
+            console.log("this.airlines:" + this.airlines)
 
             callback();
         });
@@ -63,8 +69,11 @@ export default class Contract {
     registerAirlines(callback) {
         let self = this;
 
-        for (const airline of this.airlines) {
-            console.log('registerAirlines: ' + airline);
+        console.log("this.airlines: " + this.airlines);
+
+        // each airline is registered by self.owner
+        for (const airline of this.airlines.slice(0, 4)) {
+            console.log('registerAirlines: ' + airline + " with:" + self.owner);
             self.flightSuretyApp.methods
                 .registerAirline(airline)
                 .send({
@@ -74,4 +83,58 @@ export default class Contract {
                 })
         }
     }
+
+    getCountAirlines(callback) {
+        let self = this;
+
+        self.flightSuretyData.methods.getCountAirlines().call({
+            from: self.owner
+        }, (err, res) => {
+            callback(err, res);
+        })
+    }
+
+    getCountMultisig(callback) {
+        let self = this;
+
+        self.flightSuretyData.methods.countMultiSig().call({
+            from: self.owner
+        }, (err, res) => {
+            callback(err, res);
+        })
+    }
+
+    isRegisteredAirline(airline, callback) {
+        let self = this;
+
+        if (airline === '') {
+            airline = this.airlines[0];
+        }
+        console.log('isRegisteredAirline: ' + airline);
+
+        self.flightSuretyData.methods.isAirlineRegistered(airline).call({
+            from: self.owner
+        }, (err, res) => {
+            callback(err, res)
+        })
+    }
+
+    registerAirlinesMultisig(callback) {
+        let self = this;
+
+        // the 4th airlines are also registered by the first 3 airlines because of multisig requirement
+        let airline = this.airlines[3];
+        let registrantAirline = this.airlines[0];
+
+        console.log('registerAirlines: ' + airline + " with:" + registrantAirline);
+        self.flightSuretyApp.methods
+            .registerAirline(airline)
+            .send({
+                from: registrantAirline,
+                gas: "999999" // for some reasons, it needs more gas
+            }, (err, res) => {
+                callback(err, res)
+            })
+    }
+
 }

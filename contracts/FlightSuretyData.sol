@@ -103,7 +103,11 @@ contract FlightSuretyData {
      *
      */
     // TODO - review how to remove the _from, that seems ugly
-    function _registerAirline(address _address) external requireIsOperational {
+    function _registerAirline(address _address)
+        external
+        requireIsOperational
+        returns (bool, uint256)
+    {
         require(
             !airlines[_address].isRegistered,
             "Airline is already registered"
@@ -122,7 +126,7 @@ contract FlightSuretyData {
             addMultiSig(tx.origin, _address);
             bool isMultiSig = getStatusMultiSig();
             if (!isMultiSig) {
-                return;
+                return (false, multiSigRegistration.length);
             }
 
             // reset the multiSigRegistration list if isMultiSig = true
@@ -135,6 +139,8 @@ contract FlightSuretyData {
 
         airlines[_address] = airline;
         countAirlines += 1;
+
+        return (true, 0);
     }
 
     function addMultiSig(address _from, address _address) private {
