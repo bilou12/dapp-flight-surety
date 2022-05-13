@@ -42,8 +42,15 @@ contract FlightSuretyApp {
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
 
-    event RegisterAirline(address _address);
-    event FundAirline(address _address, uint256 _amount);
+    event RegisterAirline(address indexed _address);
+    event FundAirline(address indexed _address, uint256 indexed _amount);
+    event SubmitOracleResponse(
+        uint256 indexed index,
+        address indexed airline,
+        string indexed flight,
+        uint256 timestamp,
+        uint8 statusCode
+    );
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -257,6 +264,22 @@ contract FlightSuretyApp {
         return oracles[msg.sender].indexes;
     }
 
+    function triggerOracleEvent(
+        uint256 _index,
+        address _airline,
+        string _flight,
+        uint256 _timestamp,
+        uint8 _statusCode
+    ) external {
+        emit SubmitOracleResponse(
+            _index,
+            _airline,
+            _flight,
+            _timestamp,
+            _statusCode
+        );
+    }
+
     // Called by oracle when a response is available to an outstanding request
     // For the response to be accepted, there must be a pending request that is open
     // and matches one of the three Indexes randomly assigned to the oracle at the
@@ -267,7 +290,7 @@ contract FlightSuretyApp {
         string flight,
         uint256 timestamp,
         uint8 statusCode
-    ) external {
+    ) external requireIsOperational {
         require(
             (oracles[msg.sender].indexes[0] == index) ||
                 (oracles[msg.sender].indexes[1] == index) ||

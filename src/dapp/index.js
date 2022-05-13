@@ -5,7 +5,11 @@ import './flightsurety.css';
 
 (async () => {
 
-    let result = null;
+    let flight = null;
+    let departureDate = null;
+    let timestamp = null;
+    let airline = null;
+    let eventIndex = null;
 
     let contract = new Contract('localhost', () => {
 
@@ -41,8 +45,8 @@ import './flightsurety.css';
                         data = data.result
                         for (let i = 0; i < data.length; i++) {
                             option = document.createElement('option');
-                            option.text = data[i].name;
-                            option.value = data[i].name;
+                            option.text = data[i].flight;
+                            option.value = data[i].flight;
                             dropdown.add(option);
                         }
                     })
@@ -72,7 +76,6 @@ import './flightsurety.css';
             })
         })
 
-
         DOM.elid('is-registered-airline').addEventListener('click', () => {
             let airline = '';
             contract.isRegisteredAirline(airline, (err, res) => {
@@ -84,7 +87,6 @@ import './flightsurety.css';
             })
         })
 
-        // Register airlines multisig
         DOM.elid('register-airlines-mutisig').addEventListener('click', () => {
             contract.registerAirlinesMultisig((err, res) => {
                 if (err) {
@@ -107,12 +109,12 @@ import './flightsurety.css';
                     .then((response) => response.json())
                     .then((data) => {
                         let option;
-                        data = data.result
                         console.log('data: ' + JSON.stringify(data))
+                        data = data.result
                         for (let i = 0; i < data.length; i++) {
                             option = document.createElement('option');
-                            option.text = data[i].name;
-                            option.value = data[i].name;
+                            option.text = data[i].flight;
+                            option.value = data[i].flight;
                             dropdown.add(option);
                         }
                     })
@@ -122,22 +124,69 @@ import './flightsurety.css';
             })
         })
 
-
-        // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
-            let flight = DOM.elid('flight-number').value;
-            // Write transaction
-            contract.fetchFlightStatus(flight, (error, result) => {
-                display('Oracles', 'Trigger oracles', [{
-                    label: 'Fetch Flight Status',
-                    error: error,
-                    value: result.flight + ' ' + result.timestamp
-                }]);
-            });
+            flight = DOM.elid('flight-number').value; // Get fight number
+            departureDate = DOM.elid('departure-date').value; // Get departure date
+
+            // fetch airline associated to the flight
+            const url = 'http://localhost:3000/flights';
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log('data: ' + JSON.stringify(data))
+                    data = data.result
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].flight != flight) {
+                            continue
+                        }
+                        airline = data[i].airline;
+
+                        // Write transaction
+                        contract.fetchFlightStatus(flight, departureDate, airline, (err, payload) => {
+                            console.log('payload: ' + JSON.stringify(payload));
+
+                            flight = payload.flight;
+                            timestamp = payload.timestamp;
+                            airline = payload.airline;
+
+                            display('Oracles', 'Trigger oracles', [{
+                                label: 'Fetch Flight Status',
+                                error: err,
+                                value: 'flight: ' + payload.flight + ' | departureDate: ' + departureDate + ' | timestamp: ' + payload.timestamp + ' | airline: ' + payload.airline
+                            }]);
+                        });
+                    }
+                })
+        })
+
+        function getEventIndex() {
+            const url = 'http://localhost:3000/eventIndex';
+
+            fetch(url)
+                .then((res) => res.json())
+                .then((data) => {
+                    console.log('data: ' + JSON.stringify(data));
+                    eventIndex = data.result;
+                    console.log('eventIndex: ' + eventIndex);
+                })
+        }
+
+        DOM.elid('request-oracle').addEventListener('click', () => {
+            getEventIndex();
+
+            sleep(1000).then(() => {
+                console.log('eventIndex: ' + parseInt(eventIndex));
+                console.log('flight: ' + flight);
+                console.log('airline: ' + airline);
+                console.log('timestamp: ' + timestamp);
+
+                contract.triggerOracleReponse(parseInt(eventIndex), flight, airline, timestamp, (err, res) => {
+                    console.log('oracle-response: ' + JSON.stringify(res));
+                })
+            })
         })
     });
 })();
-
 
 function display(title, description, results) {
     let displayDiv = DOM.elid("display-wrapper");
@@ -157,4 +206,8 @@ function display(title, description, results) {
         section.appendChild(row);
     })
     displayDiv.append(section);
+}
+
+const sleep = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
 }

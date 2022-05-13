@@ -56,6 +56,7 @@ FlightSurety is flight delay insurance for passengers:
   ```bash
   '(airline) can fund an Airline using fund() so that it can participate in the contract'
   ```
+- accounts 0 to 4 are airlines
 
 #### Passengers
 
@@ -63,12 +64,14 @@ FlightSurety is flight delay insurance for passengers:
 - flight numbers and timestamp are simulated: they are fixed for the purpose of the project and can be defined in the Dapp client
 - if the flight is delayed due to airline fault, passengers receives credit of 1.5X the amount they paid
 - funds are transferred from contract to the passenger wallet only when they initiate withdraw (should implement the "debit before credit" pattern for security reasons)
+- accounts 5 to 10 are passengers
 
 #### Oracles
 
 - implemented as a nodejs server app
 - upon startup, 20+ oracles are registered and their assigned indexes persisted in memory
 - for the purpose of the project, the notification that a flight has landed is triggered by clicking on a button on the dapp; it then notifies the contract which is going to call the oracles
+- accounts 11 to 35 are oracles
 
 #### Contracts
 
