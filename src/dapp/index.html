@@ -5,6 +5,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>FlightSurety</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
@@ -20,6 +29,8 @@
     </nav>
 
     <main class="container">
+
+        <!-- Button trigger modal -->
 
         <div id="display-wrapper" class="top-20"></div>
 
@@ -44,6 +55,11 @@
             <label class="form">Depature Date</label>
             <input id='departure-date' type="date" data-date-inline-picker="true" required />
             <btn class="btn btn-primary mr-1" id="submit-oracle">Submit to oracles</btn>
+            <button type="button" class="btn btn-primary" id="view-insurance-policy" data-toggle="modal"
+                data-target="#modal-insurance-policy">
+                View insurance policy
+            </button>
+
         </div>
 
         </div>
@@ -52,7 +68,57 @@
             <btn class="btn btn-primary" id="request-oracle">Request oracles</btn>
         </div>
 
+        </div>
+
     </main>
+
+    <!-- Modal -->
+    <div class="modal fade bottom-20" id="modal-insurance-policy" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Purchase Insurance</h4>
+                </div>
+                <div class="modal-body">
+                    <label class="form" id="flightName">Flight name: </label>
+                    <br />
+                    <label class="form" id="flightDepartureDate">Departure date: </label>
+                    <br />
+                    <hr />
+                    <label class="form">Currency: ETH</label>
+                    <label class="form">Insurance Amount(>0.01 and &lt1 ether) </label>
+                    &nbsp;<input type="number" id="insurance" min="0" max="1" step="0.01"><span
+                        class="form">Ether</span>
+                    <br>
+                    <hr>
+                    <label class="form" id='premium'>Payout for Premium: </label>&nbsp;<b></b>
+                    <table class="table">
+                        <thead class="table-head">
+                            <tr>
+                                <th>Flight Delay:</th>
+                                <th>On Time</th>
+                                <th>Delay (ether<span>&#215;</span>1.5)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th>Payout:</th>
+                                <td class="form">0 ether</td>
+                                <td>
+                                    <p id="delay" class="form">0 ether</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <btn type="button" class="btn btn-primary" id="pay">Buy Insurance</btn>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
 
 </body>
 

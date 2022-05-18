@@ -2,14 +2,17 @@ import Contract from './contract';
 import DOM from './dom';
 import './flightsurety.css';
 
+let flight = null;
+let departureDate = null;
+
 
 (async () => {
 
-    let flight = null;
-    let departureDate = null;
     let timestamp = null;
     let airline = null;
     let eventIndex = null;
+
+    hideElement("view-insurance-policy");
 
     let contract = new Contract('localhost', () => {
 
@@ -31,28 +34,7 @@ import './flightsurety.css';
                     value: res
                 }])
 
-
-                // Fetch available flights from REST API and display in dropdown
-                let dropdown = document.getElementById('flight-number');
-                dropdown.length = 0;
-
-                const url = 'http://localhost:3000/flights';
-                fetch(url)
-                    .then((response) => response.json())
-                    .then((data) => {
-                        console.log(data)
-                        let option;
-                        data = data.result
-                        for (let i = 0; i < data.length; i++) {
-                            option = document.createElement('option');
-                            option.text = data[i].flight;
-                            option.value = data[i].flight;
-                            dropdown.add(option);
-                        }
-                    })
-                    .catch(function (err) {
-                        console.error('Fetch Error -', err);
-                    });
+                updateFlightsDropdown();
             })
         })
 
@@ -98,29 +80,7 @@ import './flightsurety.css';
                     value: res
                 }])
 
-                console.log('checkpoint');
-
-                // Fetch available flights from REST API and display in dropdown
-                let dropdown = document.getElementById('flight-number');
-                dropdown.length = 0;
-
-                const url = 'http://localhost:3000/flights';
-                fetch(url)
-                    .then((response) => response.json())
-                    .then((data) => {
-                        let option;
-                        console.log('data: ' + JSON.stringify(data))
-                        data = data.result
-                        for (let i = 0; i < data.length; i++) {
-                            option = document.createElement('option');
-                            option.text = data[i].flight;
-                            option.value = data[i].flight;
-                            dropdown.add(option);
-                        }
-                    })
-                    .catch(function (err) {
-                        console.error('Fetch Error -', err);
-                    });
+                updateFlightsDropdown();
             })
         })
 
@@ -157,6 +117,9 @@ import './flightsurety.css';
                         });
                     }
                 })
+                .then(() => {
+                    displayElement("view-insurance-policy");
+                })
         })
 
         function getEventIndex() {
@@ -185,7 +148,17 @@ import './flightsurety.css';
                 })
             })
         })
+
+        DOM.elid('view-insurance-policy').addEventListener('click', () => {
+            updateModalInfo();
+        })
+
+        DOM.elid('insurance').addEventListener('change', () => {
+            DOM.elid('premium').innerHTML = "Payout for Premium: " + DOM.elid('insurance').value;
+            DOM.elid('delay').innerHTML = (1.5 * DOM.elid('insurance').value) + " ether";
+        })
     });
+
 })();
 
 function display(title, description, results) {
@@ -208,6 +181,52 @@ function display(title, description, results) {
     displayDiv.append(section);
 }
 
+function hideElement(id) {
+    var x = document.getElementById(id);
+    x.style.display = "none";
+}
+
+function displayElement(id) {
+    var x = document.getElementById(id);
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    }
+}
+
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
+window.onload = function updateElements() {
+    updateFlightsDropdown();
+
+}
+
+function updateFlightsDropdown() {
+    let dropdown = document.getElementById('flight-number');
+    dropdown.length = 0;
+
+    const url = 'http://localhost:3000/flights';
+    fetch(url)
+        .then((response) => response.json())
+        .then((data) => {
+            let option;
+            console.log('data: ' + JSON.stringify(data))
+            data = data.result
+            for (let i = 0; i < data.length; i++) {
+                option = document.createElement('option');
+                option.text = data[i].flight;
+                option.value = data[i].flight;
+                dropdown.add(option);
+            }
+            console.log('updateFlightsDropdown')
+        })
+        .catch(function (err) {
+            console.error('Fetch Error -', err);
+        });
+}
+
+function updateModalInfo() {
+    DOM.elid("flightName").innerHTML = "Flight: " + flight;
+    DOM.elid("flightDepartureDate").innerHTML = "Departure date: " + String(departureDate);
 }

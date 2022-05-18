@@ -1,6 +1,7 @@
-pragma solidity ^0.4.25;
+pragma solidity ^0.8.0;
 
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../node_modules/openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
+import "../node_modules/openzeppelin-solidity/contracts/utils/Strings.sol";
 
 contract FlightSuretyData {
     using SafeMath for uint8;
@@ -177,7 +178,7 @@ contract FlightSuretyData {
         return airlines[_address].isRegistered;
     }
 
-    function isAirlineFunded(address _address) public view returns (bool) {
+    function isAirlineFunded(address _address) external view returns (bool) {
         return airlines[_address].isFunded;
     }
 
@@ -199,7 +200,6 @@ contract FlightSuretyData {
      * @dev Buy insurance for a flight
      *
      */
-    function buy() external payable {}
 
     /**
      *  @dev Credits payouts to insurees
@@ -233,9 +233,9 @@ contract FlightSuretyData {
      * @dev Fallback function for funding smart contract.
      *
      */
-    function() external payable {
-        fund();
-    }
+    // function() external payable {
+    //     fund();
+    // }
 
     /**
      * @dev Add an address to the authorizeCallers map which is used in the modifier requireIsAuthorizedCaller

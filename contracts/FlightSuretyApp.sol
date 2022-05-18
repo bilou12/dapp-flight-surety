@@ -1,10 +1,10 @@
-pragma solidity ^0.4.25;
+pragma solidity ^0.8.0;
 
 // It's important to avoid vulnerabilities due to numeric overflow bugs
 // OpenZeppelin's SafeMath library, when used correctly, protects agains such bugs
 // More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 
-import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "../node_modules/openzeppelin-solidity/contracts/utils/math/SafeMath.sol";
 
 /************************************************** */
 /* FlightSurety Smart Contract                      */
@@ -152,12 +152,6 @@ contract FlightSuretyApp {
     }
 
     /**
-     * @dev Register a future flight for insuring.
-     *
-     */
-    function registerFlight() external pure {}
-
-    /**
      * @dev Called after oracle has updated flight status
      *
      */
@@ -171,7 +165,7 @@ contract FlightSuretyApp {
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
         address airline,
-        string flight,
+        string memory flight,
         uint256 timestamp
     ) external {
         uint8 index = getRandomIndex(msg.sender);
@@ -180,10 +174,11 @@ contract FlightSuretyApp {
         bytes32 key = keccak256(
             abi.encodePacked(index, airline, flight, timestamp)
         );
-        oracleResponses[key] = ResponseInfo({
-            requester: msg.sender,
-            isOpen: true
-        });
+        ResponseInfo memory responseInfo;
+        responseInfo.requester= msg.sender;
+        responseInfo.isOpen= true;
+
+        oracleResponses[key] = responseInfo;
 
         emit OracleRequest(index, airline, flight, timestamp);
     }
@@ -211,10 +206,12 @@ contract FlightSuretyApp {
     struct ResponseInfo {
         address requester; // Account that requested status
         bool isOpen; // If open, oracle responses are accepted
-        mapping(uint8 => address[]) responses; // Mapping key is the status code reported
+        // mapping(uint8 => address[]) responses; // Mapping key is the status code reported
         // This lets us group responses and identify
         // the response that majority of the oracles
     }
+
+    mapping(bytes32 => mapping(uint8 => address[])) oracleActualResponses;
 
     // Track all oracle responses
     // Key = hash(index, flight, timestamp)
@@ -255,19 +252,21 @@ contract FlightSuretyApp {
         oracles[msg.sender] = Oracle({isRegistered: true, indexes: indexes});
     }
 
-    function getMyIndexes() external view returns (uint8[3]) {
+    function getMyIndexes() external view returns (uint8[3] memory) {
         require(
             oracles[msg.sender].isRegistered,
             "Not registered as an oracle"
         );
 
-        return oracles[msg.sender].indexes;
+        uint8[3] memory indexes = oracles[msg.sender].indexes;
+
+        return indexes;
     }
 
     function triggerOracleEvent(
         uint256 _index,
         address _airline,
-        string _flight,
+        string calldata _flight,
         uint256 _timestamp,
         uint8 _statusCode
     ) external {
@@ -287,7 +286,7 @@ contract FlightSuretyApp {
     function submitOracleResponse(
         uint8 index,
         address airline,
-        string flight,
+        string memory flight,
         uint256 timestamp,
         uint8 statusCode
     ) external requireIsOperational {
@@ -306,13 +305,16 @@ contract FlightSuretyApp {
             "Flight or timestamp do not match oracle request"
         );
 
-        oracleResponses[key].responses[statusCode].push(msg.sender);
+        // oracleResponses[key].responses[statusCode].push(msg.sender);
 
+        mapping(uint8 => address[]) storage tempResponses = oracleActualResponses[key];
+        tempResponses[statusCode].push(msg.sender);
+    
         // Information isn't considered verified until at least MIN_RESPONSES
         // oracles respond with the *** same *** information
         emit OracleReport(airline, flight, timestamp, statusCode);
         if (
-            oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES
+            tempResponses[statusCode].length >= MIN_RESPONSES
         ) {
             emit FlightStatusInfo(airline, flight, timestamp, statusCode);
 
@@ -323,14 +325,14 @@ contract FlightSuretyApp {
 
     function getFlightKey(
         address airline,
-        string flight,
+        string calldata flight,
         uint256 timestamp
     ) internal pure returns (bytes32) {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
     }
 
     // Returns array of three non-duplicating integers from 0-9
-    function generateIndexes(address account) internal returns (uint8[3]) {
+    function generateIndexes(address account) internal returns (uint8[3] memory) {
         uint8[3] memory indexes;
         indexes[0] = getRandomIndex(account);
 
@@ -375,7 +377,7 @@ interface FlightSuretyData {
         external
         returns (bool, uint256);
 
-    function isAirlineFunded(address _address) public view returns (bool);
+    function isAirlineFunded(address _address) external view returns (bool);
 
     function fundAirline(address _address, uint256 _amount) external;
 
