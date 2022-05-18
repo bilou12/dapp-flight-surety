@@ -181,8 +181,7 @@ initOracles().then(oracles => {
             }).then(res => {
               console.log(res)
             }).catch(err => {
-              // it's expected that the oracle with the wrong index will return an error since the require wont be satisfied
-              console.log(err)
+              console.log("Issue with the tx submitOracleResponse. It's expected some oracles fail because they dont have the same eventIndex.")
             })
         })
       })
