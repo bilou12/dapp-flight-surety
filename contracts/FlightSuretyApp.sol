@@ -122,6 +122,7 @@ contract FlightSuretyApp {
      */
     function registerAirline(address _address)
         external
+        requireIsOperational
         returns (bool, uint256)
     {
         (bool success, uint256 votes) = flightSuretyData._registerAirline(
@@ -152,10 +153,23 @@ contract FlightSuretyApp {
     }
 
     /**
-     * @dev Register a future flight for insuring.
+     * @dev Buy insurance for a flight
      *
      */
-    function registerFlight() external pure {}
+    function buy(
+        address _airline,
+        string _flight // the flight is identified by flight + timestamp
+    ) external payable requireIsOperational {
+        require(
+            flightSuretyData.isAirlineRegistered(_airline) &&
+                flightSuretyData.isAirlineFunded(_airline),
+            "Airline is not registered or funded"
+        );
+
+        require((msg.value > 0) && (msg.value <= 1 ether), "Amount is invalid");
+
+        flightSuretyData.buy(msg.sender, _airline, msg.value, _flight);
+    }
 
     /**
      * @dev Called after oracle has updated flight status
@@ -173,7 +187,7 @@ contract FlightSuretyApp {
         address airline,
         string flight,
         uint256 timestamp
-    ) external {
+    ) external requireIsOperational {
         uint8 index = getRandomIndex(msg.sender);
 
         // Generate a unique key for storing the request
@@ -375,9 +389,18 @@ interface FlightSuretyData {
         external
         returns (bool, uint256);
 
-    function isAirlineFunded(address _address) public view returns (bool);
+    function isAirlineFunded(address _address) external view returns (bool);
+
+    function isAirlineRegistered(address _address) external view returns (bool);
 
     function fundAirline(address _address, uint256 _amount) external;
 
     function setAirlineFunded(address _address) external;
+
+    function buy(
+        address _from,
+        address _airline,
+        uint256 _fee,
+        string _flight
+    ) external payable;
 }

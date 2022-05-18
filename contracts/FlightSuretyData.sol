@@ -26,6 +26,19 @@ contract FlightSuretyData {
     uint8 multiSigThreshold = 4;
     address[] multiSigRegistration = new address[](0);
 
+    struct InsuranceContract {
+        address customer;
+        address airline;
+        string flight;
+        uint8 timestamp;
+        uint256 fee;
+        uint256 amount;
+        bool paidOut;
+    }
+    mapping(string => InsuranceContract[]) insuranceContracts; // contracts bought by the customers to the airlines
+
+    mapping(address => uint256) insuranceFunds; // funds of the airlines, used to pay out customers
+
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -173,11 +186,15 @@ contract FlightSuretyData {
         return countAirlines;
     }
 
-    function isAirlineRegistered(address _address) public view returns (bool) {
+    function isAirlineRegistered(address _address)
+        external
+        view
+        returns (bool)
+    {
         return airlines[_address].isRegistered;
     }
 
-    function isAirlineFunded(address _address) public view returns (bool) {
+    function isAirlineFunded(address _address) external view returns (bool) {
         return airlines[_address].isFunded;
     }
 
@@ -199,7 +216,46 @@ contract FlightSuretyData {
      * @dev Buy insurance for a flight
      *
      */
-    function buy() external payable {}
+    function buy(
+        address _from,
+        address _airline,
+        uint256 _fee,
+        string _flight
+    ) external payable {
+        InsuranceContract insuranceContract;
+        insuranceContract.airline = _airline;
+        insuranceContract.fee = _fee;
+        insuranceContract.customer = _from;
+        insuranceContract.flight = _flight;
+        insuranceContract.amount = (_fee * 3) / 2;
+        insuranceContract.paidOut = false;
+
+        insuranceContracts[_flight].push(insuranceContract);
+
+        uint256 existingAmount = insuranceFunds[_airline];
+        insuranceFunds[_airline] = existingAmount.add(_fee);
+    }
+
+    function getInsuranceFund(address _airline) public view returns (uint256) {
+        return insuranceFunds[_airline];
+    }
+
+    function getInsuranceContract(string _flight, address _customer)
+        public
+        view
+        returns (uint256)
+    {
+        InsuranceContract[] memory contracts = insuranceContracts[_flight];
+
+        uint256 amount = 0;
+        for (uint256 i = 0; i < contracts.length; i++) {
+            if (contracts[i].customer == _customer) {
+                amount = contracts[i].amount;
+            }
+        }
+
+        return amount;
+    }
 
     /**
      *  @dev Credits payouts to insurees

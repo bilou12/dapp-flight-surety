@@ -268,4 +268,38 @@ contract('Flight Surety Tests', async (accounts) => {
         })
         assert.equal(funds, 10e+18, "Funds do not match");
     });
+
+    it('(passenger) can buy an insurance for a flight', async () => {
+        let flight = 'FLG1';
+        let airline = accounts[3];
+
+        // ARRANGE
+        // check that the airline is registered and funded
+        let isRegistered = await config.flightSuretyData.isAirlineRegistered.call(airline, {
+            from: config.owner
+        })
+        assert.equal(isRegistered, true, "newAirline is not registered")
+
+        let isFunded = await config.flightSuretyData.isAirlineFunded.call(airline, {
+            from: config.owner
+        })
+        assert.equal(isFunded, true, "newAirline is not funded")
+
+        let insuranceFund;
+        insuranceFund = await config.flightSuretyData.getInsuranceFund.call(airline);
+        assert(insuranceFund, 0, "The airline has already received funds from one customer")
+
+        // ACT
+        // buy insurance for the 1st customer
+        await config.flightSuretyApp.buy(airline, flight, {
+            from: config.firstCustomer,
+            value: 1000
+        })
+
+        insuranceFund = await config.flightSuretyData.getInsuranceFund.call(airline);
+        assert(insuranceFund, 1000, "Insurance fund does not match.")
+
+        let insuranceContract = await config.flightSuretyData.getInsuranceContract.call(flight, config.firstCustomer)
+        assert(insuranceContract, 1000, "insuranceContract amount does not match")
+    })
 });
