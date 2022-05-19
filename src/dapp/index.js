@@ -4,13 +4,12 @@ import './flightsurety.css';
 
 let flight = null;
 let departureDate = null;
-
+let eventIndex = null;
 
 (async () => {
 
     let timestamp = null;
     let airline = null;
-    let eventIndex = null;
 
     hideElement("view-insurance-policy");
 
@@ -59,14 +58,59 @@ let departureDate = null;
         })
 
         DOM.elid('is-registered-airline').addEventListener('click', () => {
-            let airline = '';
-            contract.isRegisteredAirline(airline, (err, res) => {
-                display('Airlines', 'Is registered airline', [{
-                    label: 'Is registered airline',
-                    error: err,
-                    value: res
-                }])
-            })
+
+            flight = DOM.elid('flight-number').value; // Get fight number
+            departureDate = DOM.elid('departure-date').value; // Get departure date
+
+            // fetch airline associated to the flight
+            const url = 'http://localhost:3000/flights';
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log('data: ' + JSON.stringify(data))
+                    data = data.result
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].flight != flight) {
+                            continue
+                        }
+                        airline = data[i].airline;
+                    }
+                    contract.isRegisteredAirline(airline, (err, res) => {
+                        display('Airlines', 'Is registered airline', [{
+                            label: 'Is registered airline',
+                            error: err,
+                            value: res
+                        }])
+                    })
+                })
+        })
+
+        DOM.elid('is-funded-airline').addEventListener('click', () => {
+
+            flight = DOM.elid('flight-number').value; // Get fight number
+
+            // fetch airline associated to the flight
+            const url = 'http://localhost:3000/flights';
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log('data: ' + JSON.stringify(data))
+                    data = data.result
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].flight != flight) {
+                            continue
+                        }
+                        airline = data[i].airline;
+                    }
+
+                    contract.isFundedAirline(airline, (err, res) => {
+                        display('Airlines', 'Is funded airline', [{
+                            label: 'Is funded airline',
+                            error: err,
+                            value: res
+                        }])
+                    })
+                })
         })
 
         DOM.elid('register-airlines-mutisig').addEventListener('click', () => {
@@ -81,6 +125,20 @@ let departureDate = null;
                 }])
 
                 updateFlightsDropdown();
+            })
+        })
+
+        DOM.elid('fund-airlines').addEventListener('click', () => {
+            contract.fundAirlines((err, res) => {
+                if (err) {
+                    console.log('err: ' + err)
+                }
+
+                display('Airlines', 'Fund airlines', [{
+                    label: 'Fund airlines',
+                    error: err,
+                    value: res
+                }])
             })
         })
 
@@ -122,20 +180,11 @@ let departureDate = null;
                 })
         })
 
-        function getEventIndex() {
-            const url = 'http://localhost:3000/eventIndex';
-
-            fetch(url)
-                .then((res) => res.json())
-                .then((data) => {
-                    console.log('data: ' + JSON.stringify(data));
-                    eventIndex = data.result;
-                    console.log('eventIndex: ' + eventIndex);
-                })
-        }
-
         DOM.elid('request-oracle').addEventListener('click', () => {
             getEventIndex();
+
+            flight = DOM.elid('flight-number').value; // Get fight number
+            departureDate = DOM.elid('departure-date').value; // Get departure date
 
             sleep(1000).then(() => {
                 console.log('eventIndex: ' + parseInt(eventIndex));
@@ -153,9 +202,22 @@ let departureDate = null;
             updateModalInfo();
         })
 
-        DOM.elid('insurance').addEventListener('change', () => {
-            DOM.elid('premium').innerHTML = "Payout for Premium: " + DOM.elid('insurance').value;
-            DOM.elid('delay').innerHTML = (1.5 * DOM.elid('insurance').value) + " ether";
+        DOM.elid('fee').addEventListener('change', () => {
+            DOM.elid('premium').innerHTML = "Payout for Premium: " + DOM.elid('fee').value;
+            DOM.elid('delay').innerHTML = (1.5 * DOM.elid('fee').value) + " ether";
+        })
+
+        DOM.elid('buy-insurance').addEventListener('click', () => {
+            let fee = DOM.elid('fee').value;
+            console.log('fee: ' + fee);
+            let flightWithTs = flight + '@' + timestamp;
+
+            contract.buyInsurance(fee, airline, flightWithTs, (err, res) => {
+                if (err) {
+                    console.log('err:' + err);
+                }
+                console.log(res);
+            });
         })
     });
 
@@ -221,12 +283,24 @@ function updateFlightsDropdown() {
             }
             console.log('updateFlightsDropdown')
         })
-        .catch(function (err) {
-            console.error('Fetch Error -', err);
+        .catch((err) => {
+            console.log('Fetch Error:' + err);
         });
 }
 
 function updateModalInfo() {
     DOM.elid("flightName").innerHTML = "Flight: " + flight;
     DOM.elid("flightDepartureDate").innerHTML = "Departure date: " + String(departureDate);
+}
+
+function getEventIndex() {
+    const url = 'http://localhost:3000/eventIndex';
+
+    fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+            console.log('data: ' + JSON.stringify(data));
+            eventIndex = data.result;
+            console.log('eventIndex: ' + eventIndex);
+        })
 }

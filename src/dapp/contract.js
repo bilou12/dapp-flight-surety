@@ -32,9 +32,10 @@ export default class Contract {
 
             this.owner = accts[0];
 
+            this.airlines.push(this.owner);
             let counter = 1;
 
-            while (this.airlines.length < this.NB_AIRLINES) {
+            while (this.airlines.length <= this.NB_AIRLINES) {
                 this.airlines.push(accts[counter++]);
             }
 
@@ -128,22 +129,62 @@ export default class Contract {
         })
     }
 
+    isFundedAirline(airline, callback) {
+        let self = this;
+
+        if (airline === '') {
+            airline = this.airlines[0];
+        }
+        console.log('isRegisteredAirline: ' + airline);
+
+        self.flightSuretyData.methods.isAirlineFunded(airline).call({
+            from: self.owner
+        }, (err, res) => {
+            callback(err, res)
+        })
+
+    }
+
     registerAirlinesMultisig(callback) {
         let self = this;
 
-        // the 4th airlines are also registered by the first 3 airlines because of multisig requirement
-        let airline = this.airlines[3];
-        let registrantAirline = this.airlines[0];
+        console.log('this.airlines:' + this.airlines);
 
-        console.log('registerAirlines: ' + airline + " with:" + registrantAirline);
-        self.flightSuretyApp.methods
-            .registerAirline(airline)
-            .send({
-                from: registrantAirline,
-                gas: "999999" // for some reasons, it needs more gas
-            }, (err, res) => {
-                callback(err, res)
-            })
+        // the 5th airlines needs to be registered by 2 airlines because multisig started after the 4th airline
+        let airline = this.airlines[4];
+
+        console.log('airline: ' + airline);
+
+        for (let i = 0; i < 2; i++) {
+            let registrantAirline = this.airlines[i]; // need to be different than this.owner which has already registered the airline in registerAirline
+
+            console.log('registerAirlines: ' + airline + " with:" + registrantAirline);
+            self.flightSuretyApp.methods
+                .registerAirline(airline)
+                .send({
+                    from: registrantAirline,
+                    gas: "999999" // for some reasons, it needs more gas
+                }, (err, res) => {
+                    callback(err, res)
+                })
+        }
+    }
+
+    fundAirlines(callback) {
+        let self = this;
+
+        console.log('this.airlines:' + this.airlines);
+
+        for (const airline of this.airlines) {
+            self.flightSuretyApp.methods
+                .fund()
+                .send({
+                    from: airline,
+                    value: 10e+18
+                }, (err, res) => {
+                    callback(err, res)
+                })
+        }
     }
 
     triggerOracleReponse(eventIndex, flight, airline, timestamp, callback) {
@@ -166,4 +207,22 @@ export default class Contract {
             })
     }
 
+    buyInsurance(fee, airline, flight, callback) {
+        let self = this;
+
+        console.log('buyInsurance - airline:' + airline + ', flight: ' + flight, 'fee: ' + fee);
+
+        let value = Web3.utils.toWei(fee.toString(), "ether");
+        console.log('value: ' + value);
+
+        self.flightSuretyApp.methods
+            .buy(airline, flight)
+            .send({
+                from: this.passengers[0],
+                value: value, // Number(fee) * this.weiMultiple,
+                gas: "999999" // for some reasons, it needs more gas
+            }, (err, res) => {
+                callback(err, res);
+            })
+    }
 }

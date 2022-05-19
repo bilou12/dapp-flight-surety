@@ -97,7 +97,7 @@ To install, download or clone the repo, then:
 
 `npm install`
 
-`ganache-cli -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" -a 25`
+`ganache-cli -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" -a 35`
 `truffle console --network ganache_cli`
 `compile`
 `migrate`

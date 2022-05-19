@@ -39,12 +39,14 @@
             <btn class="btn btn-primary mr-1" id="get-count-airlines">Display count airlines</btn>
             <btn class="btn btn-primary mr-1" id="get-count-multisig">Display count multisig</btn>
             <btn class="btn btn-primary mr-1" id="is-registered-airline">Is airline registered?</btn>
+            <btn class="btn btn-primary mr-1" id="is-funded-airline">Is airline funded?</btn>
         </div>
 
         <div class="row top-20">
             <label class="form">Registering airlines</label>
             <btn class="btn btn-primary mr-1" id="register-airlines">Register Airlines</btn>
             <btn class="btn btn-primary mr-1" id="register-airlines-mutisig">Register Airlines Multisig</btn>
+            <btn class="btn btn-primary mr-1" id="fund-airlines">Fund Airlines</btn>
         </div>
 
         </div>
@@ -87,8 +89,7 @@
                     <hr />
                     <label class="form">Currency: ETH</label>
                     <label class="form">Insurance Amount(>0.01 and &lt1 ether) </label>
-                    &nbsp;<input type="number" id="insurance" min="0" max="1" step="0.01"><span
-                        class="form">Ether</span>
+                    &nbsp;<input type="number" id="fee" min="0" max="1" step="0.01"><span class="form">Ether</span>
                     <br>
                     <hr>
                     <label class="form" id='premium'>Payout for Premium: </label>&nbsp;<b></b>
@@ -110,7 +111,7 @@
                             </tr>
                         </tbody>
                     </table>
-                    <btn type="button" class="btn btn-primary" id="pay">Buy Insurance</btn>
+                    <btn type="button" class="btn btn-primary" id="buy-insurance">Buy Insurance</btn>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
