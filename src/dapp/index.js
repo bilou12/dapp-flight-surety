@@ -194,6 +194,15 @@ let eventIndex = null;
 
                 contract.triggerOracleReponse(parseInt(eventIndex), flight, airline, timestamp, (err, res) => {
                     console.log('oracle-response: ' + JSON.stringify(res));
+                    if (err) {
+                        console.log('err:' + err);
+                    } else {
+                        display('Oracles', 'Request oracles', [{
+                            label: 'Request oracle',
+                            error: err,
+                            value: 'statusCode: ' + res['statusCode']
+                        }]);
+                    }
                 })
             })
         })
@@ -212,13 +221,47 @@ let eventIndex = null;
             console.log('fee: ' + fee);
             let flightWithTs = flight + '@' + timestamp;
 
-            contract.buyInsurance(fee, airline, flightWithTs, (err, res) => {
+            contract.buyInsurance(fee, airline, flightWithTs, (err, payload) => {
                 if (err) {
                     console.log('err:' + err);
+                } else {
+                    display('Insurance', 'Buy insurance', [{
+                        label: 'Buy insurance',
+                        error: err,
+                        value: 'Passenger: ' + payload.passenger + ' bought insurance for a fee : ' + payload.value + ' with the airline/flight: ' + payload.airline + ' / ' + payload.flight
+                    }]);
                 }
-                console.log(res);
             });
         })
+
+        DOM.elid('funds-airline').addEventListener('click', () => {
+            flight = DOM.elid('flight-number').value; // Get fight number
+            console.log('flight: ' + flight);
+
+            const url = 'http://localhost:3000/flights';
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log('data: ' + JSON.stringify(data))
+                    data = data.result
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].flight != flight) {
+                            continue
+                        }
+                        airline = data[i].airline;
+                    }
+
+                    console.log('airline: ' + airline);
+
+                    contract.getFundsAirline(airline, (err, res) => {
+                        display('Insurance', 'Get funds airline', [{
+                            label: 'Get funds airline',
+                            error: err,
+                            value: res + ' wei'
+                        }]);
+                    });
+                });
+        });
     });
 
 })();

@@ -215,14 +215,34 @@ export default class Contract {
         let value = Web3.utils.toWei(fee.toString(), "ether");
         console.log('value: ' + value);
 
+        const payload = {
+            airline: airline,
+            flight: flight,
+            passenger: this.passengers[0],
+            value: value
+        }
+
         self.flightSuretyApp.methods
-            .buy(airline, flight)
+            .buy(payload.airline, payload.flight)
             .send({
-                from: this.passengers[0],
-                value: value, // Number(fee) * this.weiMultiple,
+                from: payload.passenger,
+                value: payload.value,
                 gas: "999999" // for some reasons, it needs more gas
             }, (err, res) => {
-                callback(err, res);
+                callback(err, payload);
             })
+    }
+
+    getFundsAirline(airline, callback) {
+        let self = this;
+
+        self.flightSuretyData.methods
+            .getInsuranceFund(airline)
+            .call({
+                    from: self.owner
+                },
+                (err, res) => {
+                    callback(err, res);
+                })
     }
 }
