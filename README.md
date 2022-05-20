@@ -110,6 +110,8 @@ To install, download or clone the repo, then:
 `truffle console --network ganache_cli`
 `compile`
 `migrate`
+`npm run server`
+`npm run dapp`
 
 ## Clean
 
@@ -120,25 +122,26 @@ To install, download or clone the repo, then:
 
 To start Ganache with N accounts
 
-`ganache-cli -a 25 -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"`
+`ganache-cli -m "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat" -a 35`
 
 To run truffle tests:
 
 `truffle console --network ganache_cli`
 `test`
 
-To use the dapp:
+To use the oracles server and the dapp:
 
 `truffle console --network ganache_cli`
 `compile`
 `migrate`
+`npm run server`
 `npm run dapp`
 
 To view dapp:
 
 `http://localhost:8000`
 
-## Develop Server
+## Oracles Server
 
 `npm run server`
 `truffle test ./test/oracles.js`
