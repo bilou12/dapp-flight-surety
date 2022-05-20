@@ -41,6 +41,7 @@ build
 # Dependency directories
 node_modules/
 node_modules_old/
+node_modules_bk/
 jspm_packages/
 
 # Typescript v1 declaration files

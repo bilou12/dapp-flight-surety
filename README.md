@@ -71,17 +71,22 @@ FlightSurety is flight delay insurance for passengers:
 - implemented as a nodejs server app in src/server/server.js
 - upon startup, 20+ oracles are registered and their assigned indexes persisted in memory in initOracles()
 - for the purpose of the project, the notification that a flight has landed is triggered by clicking on a button on the dapp; it then notifies the contract which is going to call the oracles: btn "request-oracle" in src.dapp.index.html
-- workflow: 
-  1) click on btn "submit-oracle"
+- workflow:
+
+  1. click on btn "submit-oracle"
+
   - the user select a flight and a departure time then click on btn "submit-oracle". This will call the function "fetchFlightStatus" from the smart contract that will create a random index associated to the flight and call for oracle requests.
   - the oracle requests will be transmitted to server.js via events.
   - upon reception of the oracle request, the server will store the eventIndex associated to the flight.
-  2) click on btn "request-oracle"
-  - the click call the function "triggerOracleEvent" from the smart contract. 
+
+  2. click on btn "request-oracle"
+
+  - the click call the function "triggerOracleEvent" from the smart contract.
   - the function emit an event "SubmitOracleResponse".
   - upon reception of the event, the "server.js" calls the function "submitOracleResponse" from the smart contract that will update the status in the dedicated storage, emit an event "OracleReport" and if 3 oracles agree, emit an event "FlightStatusInfo" and process the status info
 
   - the flight status requests with btn "request-oracle" from client Dapp result in OracleReport event emitted by Smart Contract that is captured by server (displayed on console and handled in code)
+
 - accounts 11 to 35 are oracles
 
 #### Contracts

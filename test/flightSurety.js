@@ -286,7 +286,7 @@ contract('Flight Surety Tests', async (accounts) => {
         assert.equal(isFunded, true, "newAirline is not funded")
 
         let insuranceFund;
-        insuranceFund = await config.flightSuretyData.getInsuranceFund.call(airline);
+        insuranceFund = await config.flightSuretyData.getAirlineFunds.call(airline);
         assert(insuranceFund, 0, "The airline has already received funds from one customer")
 
         // ACT
@@ -296,7 +296,7 @@ contract('Flight Surety Tests', async (accounts) => {
             value: 1000
         })
 
-        insuranceFund = await config.flightSuretyData.getInsuranceFund.call(airline);
+        insuranceFund = await config.flightSuretyData.getAirlineFunds.call(airline);
         assert(insuranceFund, 1000, "Insurance fund does not match.")
 
         let insuranceContract = await config.flightSuretyData.getInsuranceContract.call(flight, config.firstCustomer)
@@ -310,7 +310,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
         // ARRANGE
         // check that the 1st customer has bought the insurance
-        insuranceFund = await config.flightSuretyData.getInsuranceFund.call(airline);
+        insuranceFund = await config.flightSuretyData.getAirlineFunds.call(airline);
         assert(insuranceFund, 1000, "Insurance fund does not match.")
 
         let insuranceContract = await config.flightSuretyData.getInsuranceContract.call(flight, config.firstCustomer)

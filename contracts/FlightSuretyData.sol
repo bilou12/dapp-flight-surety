@@ -36,8 +36,6 @@ contract FlightSuretyData {
     }
     mapping(string => InsuranceContract[]) insuranceContracts; // contracts bought by the customers to the airlines
 
-    mapping(address => uint256) insuranceFunds; // funds of the airlines, used to pay out customers
-
     mapping(address => uint256) customerCredits; // funds that the customer is entitled to and will be able to withdraw
 
     /********************************************************************************************/
@@ -209,6 +207,10 @@ contract FlightSuretyData {
         airlines[_address].isFunded = true;
     }
 
+    /**
+     * @dev Returns customer, fee and payout of an insurance contract per flight and per customer
+     *
+     */
     function getAirlineFunds(address _address) public view returns (uint256) {
         return funds[_address];
     }
@@ -232,29 +234,34 @@ contract FlightSuretyData {
 
         insuranceContracts[_flight].push(insuranceContract);
 
-        uint256 existingAmount = insuranceFunds[_airline];
-        insuranceFunds[_airline] = existingAmount.add(_fee);
+        uint256 existingAmount = funds[_airline];
+        funds[_airline] = existingAmount.add(_fee);
     }
 
-    function getInsuranceFund(address _airline) public view returns (uint256) {
-        return insuranceFunds[_airline];
-    }
-
+    /**
+     * @dev Returns customer, fee and payout of an insurance contract per flight and per customer
+     *
+     */
     function getInsuranceContract(string _flight, address _customer)
         public
         view
-        returns (uint256)
+        returns (
+            address customer,
+            uint256 fee,
+            uint256 payout
+        )
     {
         InsuranceContract[] memory contracts = insuranceContracts[_flight];
 
-        uint256 payout = 0;
         for (uint256 i = 0; i < contracts.length; i++) {
             if (contracts[i].customer == _customer) {
+                customer = contracts[i].customer;
+                fee = contracts[i].fee;
                 payout = contracts[i].payout;
             }
         }
 
-        return payout;
+        return (customer, fee, payout);
     }
 
     /**
@@ -276,12 +283,19 @@ contract FlightSuretyData {
         delete insuranceContracts[_flight];
     }
 
+    /**
+     *  @dev Returns the credits customers can get paid for
+     */
     function getCustomerCredits(address _customer)
         external
         view
         returns (uint256)
     {
         return customerCredits[_customer];
+    }
+
+    function removeCustomerCredits(address _customer) external {
+        delete customerCredits[_customer];
     }
 
     /**

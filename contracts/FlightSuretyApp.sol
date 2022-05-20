@@ -135,6 +135,10 @@ contract FlightSuretyApp {
         return (success, votes);
     }
 
+    /**
+     * @dev Fund an airline
+     *
+     */
     function fund() public payable requireIsOperational {
         // check
         require(msg.value == 10 ether, "msg.value should be 10 ether");
@@ -171,6 +175,18 @@ contract FlightSuretyApp {
         flightSuretyData.buy(msg.sender, _airline, msg.value, _flight);
     }
 
+    function withdraw() external payable requireIsOperational {
+        // check 
+        uint256 amount = flightSuretyData.getCustomerCredits(msg.sender);
+        require(amount > 0, "No credits to withdraw.");
+
+        // effects
+        flightSuretyData.removeCustomerCredits(msg.sender);
+
+        // interact
+        msg.sender.transfer(amount);
+    }
+
     /**
      * @dev Called after oracle has updated flight status
      *
@@ -190,11 +206,16 @@ contract FlightSuretyApp {
         );
 
         if (_statusCode == STATUS_CODE_LATE_AIRLINE) {
+            emit CreditInsurees(_flight);
+
             flightSuretyData.creditInsurees(_flight);
         }
     }
 
-    // Generate a request for oracles to fetch flight information
+    /**
+     * @dev Generate a request for oracles to fetch flight information
+     *
+     */
     function fetchFlightStatus(
         address airline,
         string flight,
@@ -260,6 +281,8 @@ contract FlightSuretyApp {
         uint256 timestamp,
         uint8 status
     );
+
+    event CreditInsurees(string flight);
 
     // Event fired when flight status request is submitted
     // Oracles track this and if they have a matching index
@@ -416,10 +439,21 @@ interface FlightSuretyData {
         string _flight
     ) external payable;
 
-    function getInsuranceContract(string _flight, address _customer)
+    function getInsuranceContracts(string _flight, address _customer)
+        external
+        view
+        returns (
+            address customer,
+            uint256 fee,
+            uint256 amount
+        );
+
+    function creditInsurees(string _flight) external;
+
+    function getCustomerCredits(address _customer)
         external
         view
         returns (uint256);
 
-    function creditInsurees(string _flight) external;
+    function removeCustomerCredits(address _customer) external;
 }

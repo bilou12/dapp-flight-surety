@@ -8,6 +8,7 @@ export default class Contract {
     constructor(network, callback) {
 
         let config = Config[network];
+        this.config = config;
         this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
         this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
@@ -95,21 +96,25 @@ export default class Contract {
     getCountAirlines(callback) {
         let self = this;
 
-        self.flightSuretyData.methods.getCountAirlines().call({
-            from: self.owner
-        }, (err, res) => {
-            callback(err, res);
-        })
+        self.flightSuretyData.methods
+            .getCountAirlines()
+            .call({
+                from: self.owner
+            }, (err, res) => {
+                callback(err, res);
+            })
     }
 
     getCountMultisig(callback) {
         let self = this;
 
-        self.flightSuretyData.methods.countMultiSig().call({
-            from: self.owner
-        }, (err, res) => {
-            callback(err, res);
-        })
+        self.flightSuretyData.methods
+            .countMultiSig()
+            .call({
+                from: self.owner
+            }, (err, res) => {
+                callback(err, res);
+            })
     }
 
     isRegisteredAirline(airline, callback) {
@@ -120,11 +125,13 @@ export default class Contract {
         }
         console.log('isRegisteredAirline: ' + airline);
 
-        self.flightSuretyData.methods.isAirlineRegistered(airline).call({
-            from: self.owner
-        }, (err, res) => {
-            callback(err, res)
-        })
+        self.flightSuretyData.methods
+            .isAirlineRegistered(airline)
+            .call({
+                from: self.owner
+            }, (err, res) => {
+                callback(err, res)
+            })
     }
 
     isFundedAirline(airline, callback) {
@@ -135,11 +142,13 @@ export default class Contract {
         }
         console.log('isRegisteredAirline: ' + airline);
 
-        self.flightSuretyData.methods.isAirlineFunded(airline).call({
-            from: self.owner
-        }, (err, res) => {
-            callback(err, res)
-        })
+        self.flightSuretyData.methods
+            .isAirlineFunded(airline)
+            .call({
+                from: self.owner
+            }, (err, res) => {
+                callback(err, res)
+            })
 
     }
 
@@ -171,18 +180,21 @@ export default class Contract {
     fundAirlines(callback) {
         let self = this;
 
-        console.log('this.airlines:' + this.airlines);
+        this.getAirlines()
+            .then(airlines => {
+                console.log('funding airlines: ' + airlines);
 
-        for (const airline of this.airlines) {
-            self.flightSuretyApp.methods
-                .fund()
-                .send({
-                    from: airline,
-                    value: 10e+18
-                }, (err, res) => {
-                    callback(err, res)
-                })
-        }
+                for (const airline of airlines) {
+                    self.flightSuretyApp.methods
+                        .fund()
+                        .send({
+                            from: airline,
+                            value: 10e+18
+                        }, (err, res) => {
+                            callback(err, res)
+                        })
+                }
+            })
     }
 
     triggerOracleReponse(eventIndex, flight, airline, timestamp, callback) {
@@ -193,7 +205,7 @@ export default class Contract {
             flight: String(flight),
             airline: airline,
             timestamp: timestamp,
-            statusCode: self.STATUS_CODES[Math.floor(Math.random() * self.STATUS_CODES.length)]
+            statusCode: 20 // self.STATUS_CODES[Math.floor(Math.random() * self.STATUS_CODES.length)]
         }
 
         self.flightSuretyApp.methods
@@ -205,23 +217,23 @@ export default class Contract {
             })
     }
 
-    buyInsurance(fee, airline, flight, callback) {
+    buyInsurance(fee, airline, flightWithTs, callback) {
         let self = this;
 
-        console.log('buyInsurance - airline:' + airline + ', flight: ' + flight, 'fee: ' + fee);
+        console.log('buyInsurance - airline:' + airline + ', flight: ' + flightWithTs, 'fee: ' + fee);
 
         let value = Web3.utils.toWei(fee.toString(), "ether");
         console.log('value: ' + value);
 
         const payload = {
             airline: airline,
-            flight: flight,
+            flightWithTs: flightWithTs,
             passenger: this.passenger,
             value: value
         }
 
         self.flightSuretyApp.methods
-            .buy(payload.airline, payload.flight)
+            .buy(payload.airline, payload.flightWithTs)
             .send({
                 from: payload.passenger,
                 value: payload.value,
@@ -235,7 +247,7 @@ export default class Contract {
         let self = this;
 
         self.flightSuretyData.methods
-            .getInsuranceFund(airline)
+            .getAirlineFunds(airline)
             .call({
                     from: self.owner
                 },
@@ -244,7 +256,96 @@ export default class Contract {
                 })
     }
 
-    processFlightStatus() {
+    getInsuranceContracts(flight, callback) {
+        let self = this;
 
+        console.log('getInsuranceContracts flight:' + flight);
+
+        self.flightSuretyData.methods
+            .getInsuranceContract(flight, this.passenger)
+            .call({
+                from: self.owner
+            }, (err, res) => {
+                callback(err, res);
+            })
     }
+
+    getCustomerCredits(callback) {
+        let self = this;
+
+        self.flightSuretyData.methods
+            .getCustomerCredits(self.passenger)
+            .call({
+                from: self.owner
+            }, (err, res) => {
+                callback(err, res);
+            })
+    }
+
+    getBalance(isPassenger, isAppContract, callback) {
+        let self = this;
+
+        let address = null;
+
+        if (isPassenger) {
+            address = self.passenger;
+        } else if (isAppContract) {
+            address = self.config.appAddress;
+        }
+
+        self.web3.eth
+            .getBalance(address,
+                (err, res) => {
+                    console.log("balance: " + res);
+                    callback(err, res);
+                })
+    }
+
+    withdraw(callback) {
+        let self = this;
+
+        self.flightSuretyApp.methods
+            .withdraw()
+            .send({
+                from: self.passenger
+            }, (err, res) => {
+                callback(err, res)
+            })
+    }
+
+    getAirlines() {
+        var http = require('http');
+        var options = {
+            host: 'localhost',
+            port: 3000,
+            path: '/flights'
+        };
+
+
+        return new Promise((resolve, reject) => {
+            var req = http.get(options, function (res) {
+
+                let airlines = [];
+                console.log('status: ' + res.statusCode);
+
+                // Buffer the body entirely for processing as a whole.
+                var bodyChunks = [];
+                res.on('data', function (chunk) {
+                    // You can process streamed parts here...
+                    bodyChunks.push(chunk);
+                }).on('end', function () {
+                    var data = Buffer.concat(bodyChunks);
+                    data = JSON.parse(data);
+                    data = data.result;
+                    for (let i = 0; i < data.length; i++) {
+                        airlines.push(data[i].airline);
+                    }
+                    resolve(airlines);
+                }).on('error', function (e) {
+                    reject(e);
+                })
+            });
+        })
+    }
+
 }

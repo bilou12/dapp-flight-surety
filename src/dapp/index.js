@@ -39,7 +39,7 @@ let eventIndex = null;
 
         DOM.elid('get-count-airlines').addEventListener('click', () => {
             contract.getCountAirlines((err, res) => {
-                display('Airlines', 'Register airlines', [{
+                display('Info', 'Register airlines', [{
                     label: 'Count airline',
                     error: err,
                     value: res
@@ -49,7 +49,7 @@ let eventIndex = null;
 
         DOM.elid('get-count-multisig').addEventListener('click', () => {
             contract.getCountMultisig((err, res) => {
-                display('Airlines', 'Register airlines', [{
+                display('Info', 'Register airlines', [{
                     label: 'Count multisig',
                     error: err,
                     value: res
@@ -76,7 +76,7 @@ let eventIndex = null;
                         airline = data[i].airline;
                     }
                     contract.isRegisteredAirline(airline, (err, res) => {
-                        display('Airlines', 'Is registered airline', [{
+                        display('Info', 'Is registered airline', [{
                             label: 'Is registered airline',
                             error: err,
                             value: res
@@ -104,7 +104,7 @@ let eventIndex = null;
                     }
 
                     contract.isFundedAirline(airline, (err, res) => {
-                        display('Airlines', 'Is funded airline', [{
+                        display('Info', 'Is funded airline', [{
                             label: 'Is funded airline',
                             error: err,
                             value: res
@@ -228,9 +228,8 @@ let eventIndex = null;
         DOM.elid('buy-insurance').addEventListener('click', () => {
             let fee = DOM.elid('fee').value;
             console.log('fee: ' + fee);
-            let flightWithTs = flight + '@' + timestamp;
 
-            contract.buyInsurance(fee, airline, flightWithTs, (err, payload) => {
+            contract.buyInsurance(fee, airline, flight, (err, payload) => {
                 if (err) {
                     console.log('err:' + err);
                 } else {
@@ -260,7 +259,7 @@ let eventIndex = null;
                         airline = data[i].airline;
                     }
 
-                    console.log('airline: ' + airline);
+                    console.log('funds-airline airline: ' + airline);
 
                     contract.getFundsAirline(airline, (err, res) => {
                         display('Insurance', 'Get funds airline', [{
@@ -271,8 +270,62 @@ let eventIndex = null;
                     });
                 });
         });
-    });
 
+        DOM.elid('insurance-contracts').addEventListener('click', () => {
+            console.log("insurance-contracts flight: " + flight);
+
+            contract.getInsuranceContracts(flight, (err, res) => {
+                console.log('res: ' + JSON.stringify(res));
+
+                display('Insurance', 'Get insurance contracts', [{
+                    label: 'Get insurance contracts',
+                    error: err,
+                    value: 'customer: ' + res["customer"] + ' has paid fees: ' + res["fee"] +
+                        ' and could get a payout equal to: ' + res["payout"] + ' for the flight defined by: ' + flight
+                }])
+            });
+        });
+
+        DOM.elid('passenger-credits').addEventListener('click', () => {
+            contract.getCustomerCredits((err, res) => {
+                display('Passenger', 'Get passenger credits', [{
+                    label: 'Get passenger credits',
+                    error: err,
+                    value: 'Passenger has a credit equal to: ' + res + ' wei. He can withdraw them to his wallet.'
+                }])
+            })
+        })
+
+        DOM.elid('passenger-balance').addEventListener('click', () => {
+            contract.getBalance(true, false, (err, res) => {
+                display('Passenger', 'Get passenger eth balance', [{
+                    label: 'Get passenger eth balance',
+                    error: err,
+                    value: 'Passenger has a balance equal to: ' + res + ' wei.'
+                }])
+            })
+        })
+
+        DOM.elid('app-contract-balance').addEventListener('click', () => {
+            contract.getBalance(false, true, (err, res) => {
+                display('App contract', 'Get app contract eth balance', [{
+                    label: 'Get app contract eth balance',
+                    error: err,
+                    value: 'App contract has a balance equal to: ' + res + ' wei.'
+                }])
+            })
+        })
+
+        DOM.elid('withdraw').addEventListener('click', () => {
+            contract.withdraw((err, res) => {
+                display('Passenger', 'Withdraw', [{
+                    label: 'Withdraw',
+                    error: err,
+                    value: res
+                }])
+            })
+        })
+    });
 })();
 
 function display(title, description, results) {

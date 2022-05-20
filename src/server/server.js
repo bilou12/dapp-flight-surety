@@ -152,7 +152,7 @@ initOracles().then(oracles => {
     if (err) console.log(err)
 
     eventIndex = event.returnValues.index;
-    console.log(event)
+    // console.log(event)
   });
 
   flightSuretyApp.events.SubmitOracleResponse({
@@ -179,9 +179,9 @@ initOracles().then(oracles => {
               from: oracle,
               gas: 999999
             }).then(res => {
-              console.log(res)
+              // console.log(res)
             }).catch(err => {
-              console.log("Issue with the tx submitOracleResponse. It's expected some oracles fail because they dont have the same eventIndex.")
+              // console.log("Issue with the tx submitOracleResponse. It's expected some oracles fail because they dont have the same eventIndex.")
             })
         })
       })
@@ -196,7 +196,29 @@ initOracles().then(oracles => {
     if (err) console.log(err);
 
     console.log("Event OracleReport");
-    console.log(event);
+    // console.log(event);
+  })
+
+  flightSuretyApp.events.FlightStatusInfo({
+    fromBlock: 'latest'
+  }, (err, event) => {
+    if (err) {
+      console.log('err: ' + err)
+    } else {
+      console.log("Event FlightStatusInfo");
+      console.log(event);
+    }
+  })
+
+  flightSuretyApp.events.CreditInsurees({
+    fromBlock: 'latest'
+  }, (err, event) => {
+    if (err) {
+      console.log('err: ' + err)
+    } else {
+      console.log("Event CreditInsurees");
+      console.log(event);
+    }
   })
 
 }).catch(err => {
