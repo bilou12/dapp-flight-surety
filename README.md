@@ -1,6 +1,6 @@
 # FlightSurety
 
-FlightSurety is a sample application project for Udacity's Blockchain course.
+FlightSurety is an application project for Udacity's Blockchain nandegree program.
 
 FlightSurety is flight delay insurance for passengers:
 
