@@ -205,7 +205,7 @@ export default class Contract {
             flight: String(flight),
             airline: airline,
             timestamp: timestamp,
-            statusCode: 20 // self.STATUS_CODES[Math.floor(Math.random() * self.STATUS_CODES.length)]
+            statusCode: self.STATUS_CODES[Math.floor(Math.random() * self.STATUS_CODES.length)]
         }
 
         self.flightSuretyApp.methods
