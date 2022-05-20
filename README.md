@@ -98,6 +98,14 @@ FlightSurety is flight delay insurance for passengers:
 - should be pauseable
 - functions must fail fast (use require() at the start of the functions to avoid wasting gas)
 
+#### Features screenshot
+
+![passengers_can_buy_insurance](resources/passengers_can_buy_insurance.PNG)
+![customer_has_bough_insurance](resources/customer_has_bough_insurance.PNG)
+![flight_is_late_so_customer_is_credited](resources/flight_is_late_so_customer_is_credited.PNG)
+![after_withdraw_passenger_balance_is_credited](resources/after_withdraw_passenger_balance_is_credited.PNG)
+
+
 ## Install
 
 This repository contains Smart Contract code in Solidity (using Truffle), tests (also using Truffle), dApp scaffolding (using HTML, CSS and JS) and server app scaffolding.
