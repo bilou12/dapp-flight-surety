@@ -58,6 +58,8 @@ FlightSurety is flight delay insurance for passengers:
   ```
 - accounts 0 to 4 are airlines
 
+- You need to "Fund all registered airlines" before being able to buy insurance
+
 #### Passengers
 
 - may pay up to 1 ether for purchasing flight insurance
@@ -79,7 +81,9 @@ FlightSurety is flight delay insurance for passengers:
   - the oracle requests will be transmitted to server.js via events.
   - upon reception of the oracle request, the server will store the eventIndex associated to the flight.
 
-  2. click on btn "request-oracle"
+  2. after the oracle is submitted, the user can "View the insurance policy" and buy an insurance up to 1 ether.
+
+  3. click on btn "request-oracle"
 
   - the click call the function "triggerOracleEvent" from the smart contract.
   - the function emit an event "SubmitOracleResponse".
