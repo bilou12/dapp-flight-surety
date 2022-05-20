@@ -176,11 +176,23 @@ contract FlightSuretyApp {
      *
      */
     function processFlightStatus(
-        address airline,
-        string memory flight,
-        uint256 timestamp,
-        uint8 statusCode
-    ) internal pure {}
+        address _airline,
+        string _flight,
+        uint256 _timestamp,
+        uint8 _statusCode
+    ) public requireIsOperational {
+        require(_airline != address(0));
+
+        require(
+            flightSuretyData.isAirlineRegistered(_airline) &&
+                flightSuretyData.isAirlineFunded(_airline),
+            "airline is not registered or funded"
+        );
+
+        if (_statusCode == STATUS_CODE_LATE_AIRLINE) {
+            flightSuretyData.creditInsurees(_flight);
+        }
+    }
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(
@@ -403,4 +415,11 @@ interface FlightSuretyData {
         uint256 _fee,
         string _flight
     ) external payable;
+
+    function getInsuranceContract(string _flight, address _customer)
+        external
+        view
+        returns (uint256);
+
+    function creditInsurees(string _flight) external;
 }

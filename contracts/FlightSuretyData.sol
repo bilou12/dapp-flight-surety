@@ -32,12 +32,13 @@ contract FlightSuretyData {
         string flight;
         uint8 timestamp;
         uint256 fee;
-        uint256 amount;
-        bool paidOut;
+        uint256 payout;
     }
     mapping(string => InsuranceContract[]) insuranceContracts; // contracts bought by the customers to the airlines
 
     mapping(address => uint256) insuranceFunds; // funds of the airlines, used to pay out customers
+
+    mapping(address => uint256) customerCredits; // funds that the customer is entitled to and will be able to withdraw
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -222,13 +223,12 @@ contract FlightSuretyData {
         uint256 _fee,
         string _flight
     ) external payable {
-        InsuranceContract insuranceContract;
+        InsuranceContract memory insuranceContract;
         insuranceContract.airline = _airline;
         insuranceContract.fee = _fee;
         insuranceContract.customer = _from;
         insuranceContract.flight = _flight;
-        insuranceContract.amount = (_fee * 3) / 2;
-        insuranceContract.paidOut = false;
+        insuranceContract.payout = _fee.mul(3).div(2);
 
         insuranceContracts[_flight].push(insuranceContract);
 
@@ -247,20 +247,42 @@ contract FlightSuretyData {
     {
         InsuranceContract[] memory contracts = insuranceContracts[_flight];
 
-        uint256 amount = 0;
+        uint256 payout = 0;
         for (uint256 i = 0; i < contracts.length; i++) {
             if (contracts[i].customer == _customer) {
-                amount = contracts[i].amount;
+                payout = contracts[i].payout;
             }
         }
 
-        return amount;
+        return payout;
     }
 
     /**
      *  @dev Credits payouts to insurees
      */
-    function creditInsurees() external pure {}
+    function creditInsurees(string _flight) external requireIsOperational {
+        InsuranceContract[] memory contracts = insuranceContracts[_flight];
+
+        for (uint256 i = 0; i < contracts.length; i++) {
+            // then we add the payout to the data structure customerCredits
+            address customer = contracts[i].customer;
+            uint256 payout = contracts[i].payout;
+
+            uint256 existingCredit = customerCredits[customer];
+            uint256 newCredit = payout.add(existingCredit);
+            customerCredits[customer] = newCredit;
+        }
+
+        delete insuranceContracts[_flight];
+    }
+
+    function getCustomerCredits(address _customer)
+        external
+        view
+        returns (uint256)
+    {
+        return customerCredits[_customer];
+    }
 
     /**
      *  @dev Transfers eligible payout funds to insuree

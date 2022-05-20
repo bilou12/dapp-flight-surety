@@ -15,7 +15,7 @@ export default class Contract {
         this.initialize(callback);
         this.owner = null;
         this.airlines = [];
-        this.passengers = [];
+        this.passenger = null;
         this.NB_AIRLINES = 4;
 
         const STATUS_CODE_UNKNOWN = 0;
@@ -39,9 +39,7 @@ export default class Contract {
                 this.airlines.push(accts[counter++]);
             }
 
-            while (this.passengers.length < 5) {
-                this.passengers.push(accts[counter++]);
-            }
+            this.passenger = accts[counter++];
 
             console.log("this.airlines:" + this.airlines)
 
@@ -218,7 +216,7 @@ export default class Contract {
         const payload = {
             airline: airline,
             flight: flight,
-            passenger: this.passengers[0],
+            passenger: this.passenger,
             value: value
         }
 
@@ -244,5 +242,9 @@ export default class Contract {
                 (err, res) => {
                     callback(err, res);
                 })
+    }
+
+    processFlightStatus() {
+
     }
 }

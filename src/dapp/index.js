@@ -197,10 +197,19 @@ let eventIndex = null;
                     if (err) {
                         console.log('err:' + err);
                     } else {
+                        let statusCode = parseInt(res['statusCode']);
+
+                        let action;
+                        if (statusCode != 20) {
+                            action = 'no reimbursement';
+                        } else {
+                            action = 'reimbursement';
+                        }
+
                         display('Oracles', 'Request oracles', [{
                             label: 'Request oracle',
                             error: err,
-                            value: 'statusCode: ' + res['statusCode']
+                            value: 'statusCode: ' + statusCode + ' -> ' + action
                         }]);
                     }
                 })

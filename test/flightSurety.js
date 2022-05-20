@@ -302,4 +302,29 @@ contract('Flight Surety Tests', async (accounts) => {
         let insuranceContract = await config.flightSuretyData.getInsuranceContract.call(flight, config.firstCustomer)
         assert(insuranceContract, 1000, "insuranceContract amount does not match")
     })
+
+    it('(passenger) who has bought an insurance for a flight can get credited if the airline is faulty', async () => {
+        let flight = 'FLG1';
+        let airline = accounts[3];
+        let customerCredits = null;
+
+        // ARRANGE
+        // check that the 1st customer has bought the insurance
+        insuranceFund = await config.flightSuretyData.getInsuranceFund.call(airline);
+        assert(insuranceFund, 1000, "Insurance fund does not match.")
+
+        let insuranceContract = await config.flightSuretyData.getInsuranceContract.call(flight, config.firstCustomer)
+        assert(insuranceContract, 1000, "insuranceContract amount does not match")
+
+        // check that initially the customer credits is equal to 0
+        customerCredits = await config.flightSuretyData.getCustomerCredits.call(config.firstCustomer)
+        assert(customerCredits, 0, "Customer credits should be equal to 0")
+
+        // ACT
+        await config.flightSuretyData.creditInsurees.call(flight)
+
+        // ASSERT
+        customerCredits = await config.flightSuretyData.getCustomerCredits.call(config.firstCustomer)
+        assert(customerCredits, 1000, "Customer credits should be equal to 1000")
+    })
 });
