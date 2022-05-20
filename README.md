@@ -105,8 +105,14 @@ FlightSurety is flight delay insurance for passengers:
 ![flight_is_late_so_customer_is_credited](resources/flight_is_late_so_customer_is_credited.PNG)
 ![after_withdraw_passenger_balance_is_credited](resources/after_withdraw_passenger_balance_is_credited.PNG)
 
-
 ## Install
+
+```bash
+node -v: v10.24.0
+solidity: 0.4.24
+web3: 1.0.0-beta.37
+ganache v7.0.2 (@ganache/cli: 0.1.3, @ganache/core: 0.1.3)
+```
 
 This repository contains Smart Contract code in Solidity (using Truffle), tests (also using Truffle), dApp scaffolding (using HTML, CSS and JS) and server app scaffolding.
 
