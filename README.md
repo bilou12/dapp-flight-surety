@@ -100,9 +100,16 @@ FlightSurety is flight delay insurance for passengers:
 
 #### Features screenshot
 
+- Passengers can buy an insurance up to 1 ether:
 ![passengers_can_buy_insurance](resources/passengers_can_buy_insurance.PNG)
+
+- The passenger has bought the insurance (cf log "Get insurance contracts"):
 ![customer_has_bough_insurance](resources/customer_has_bough_insurance.PNG)
+
+- The flight is late (cf log "Request oracle") so the passenger gets his account credited (cf log "Get passenger credits"):
 ![flight_is_late_so_customer_is_credited](resources/flight_is_late_so_customer_is_credited.PNG)
+
+- The passenger can withdraw the payout he is entitled to. His balance is then credited by the expected amount (cf log "Get passenger eth balance"):
 ![after_withdraw_passenger_balance_is_credited](resources/after_withdraw_passenger_balance_is_credited.PNG)
 
 ## Install
